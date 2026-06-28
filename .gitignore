@@ -1,0 +1,24 @@
+# Python
+ai-server/.venv/
+__pycache__/
+*.pyc
+
+# 데이터/모델 (용량 큼)
+ai-server/data/
+ai-server/models/*.pt
+
+# Node
+web/node_modules/
+web/dist/
+web/.env
+
+# AI-Hub (민감/대용량)
+data-tools/aihub_key.txt
+data-tools/aihub_raw/
+data-tools/yolo_dataset/
+data-tools/yolo_dataset.zip
+data-tools/aihubshell
+
+# OS
+Thumbs.db
+.DS_Store

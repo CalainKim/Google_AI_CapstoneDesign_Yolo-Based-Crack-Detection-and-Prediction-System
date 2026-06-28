@@ -1,0 +1,8 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pillow==11.1.0
+# 아래 두 개는 "진짜 AI 모델"을 쓸 때 필요. 처음엔 없어도 mock 모드로 서버가 돌아갑니다.
+# Python 3.11~3.12 가상환경에서 설치하세요.
+# ultralytics==8.3.55
+# torch

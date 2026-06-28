@@ -1,0 +1,329 @@
+:root {
+  --bg: #0f1623;
+  --panel: #18212f;
+  --panel-2: #1f2a3a;
+  --line: #2b3850;
+  --text: #e6ecf5;
+  --muted: #8a98ad;
+  --accent: #3b82f6;
+  --accent-2: #22d3ee;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app {
+  min-height: 100vh;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 24px;
+  background: linear-gradient(90deg, #14233f, #0f1623);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand .logo {
+  font-size: 28px;
+}
+.brand h1 {
+  font-size: 17px;
+  margin: 0;
+}
+.brand p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.nav {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.nav a {
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.nav a.active {
+  background: var(--accent);
+  color: #fff;
+}
+.status .badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.badge.ok {
+  background: #14532d;
+  color: #4ade80;
+}
+.badge.warn {
+  background: #4a3a12;
+  color: #fbbf24;
+}
+.badge.err {
+  background: #4a1414;
+  color: #f87171;
+}
+.badge.inline {
+  display: inline-block;
+  margin: 6px 0;
+}
+
+.content {
+  padding: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+}
+.card h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+.card h4 {
+  margin: 18px 0 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.card.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stat-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+.stat-value {
+  font-size: 34px;
+  font-weight: 800;
+}
+.card.stat.danger .stat-value {
+  color: #f87171;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.map {
+  height: 360px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th,
+.table td {
+  text-align: left;
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.grade-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+}
+.grade-badge em {
+  font-style: normal;
+  opacity: 0.85;
+}
+.grade-badge.none {
+  background: #44506a;
+}
+
+.priority-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: p;
+}
+.priority-list li {
+  margin-bottom: 8px;
+}
+.priority-list a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--panel-2);
+  border-radius: 10px;
+}
+.pl-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+/* 현장 촬영 */
+.capture {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px 0;
+}
+.field span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.field select {
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+.capture-btn {
+  display: block;
+  text-align: center;
+  padding: 14px;
+  border: 2px dashed var(--accent);
+  border-radius: 12px;
+  color: var(--accent-2);
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 14px;
+}
+.preview img,
+.result-img {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+button.primary {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+button.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.result-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.reco {
+  background: var(--panel-2);
+  padding: 12px;
+  border-radius: 10px;
+  border-left: 4px solid var(--accent-2);
+}
+.detect-list {
+  margin: 0;
+  padding-left: 18px;
+}
+.detect-list li {
+  margin: 4px 0;
+}
+.error {
+  color: #f87171;
+}
+.link {
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+/* 위험요인 막대 */
+.factors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.factor {
+  display: grid;
+  grid-template-columns: 90px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.bar {
+  height: 10px;
+  background: var(--panel-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-2,
+  .capture {
+    grid-template-columns: 1fr;
+  }
+}
