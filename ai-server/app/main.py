@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 
 from . import config, db, detector, risk_engine
 
-app = FastAPI(title="AI 균열 탐지 및 붕괴 위험 예측 시스템", version="0.1.0")
+app = FastAPI(title="AI 균열 탐지 및 시설물 안전점검 선별 시스템", version="0.1.0")
 
 # 개발 단계에서는 모든 출처 허용 (배포 시 도메인 제한 권장)
 app.add_middleware(
