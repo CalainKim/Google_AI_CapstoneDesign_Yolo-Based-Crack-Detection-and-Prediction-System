@@ -47,13 +47,14 @@ def _seed_facilities():
         n = c.execute("SELECT COUNT(*) FROM facility").fetchone()[0]
         if n:
             return
-        # 예산 부족한 관리 주체가 담당하는 소규모 노후 SOC (데모용 샘플)
+        # 예산 부족한 관리 주체가 담당하는 소규모 노후 건축물·SOC (데모용 샘플).
+        # 서울시 노후주택 데이터셋(건축물) + SOC 데이터셋 대상과 정합 → 상가/주택 데모 가능.
         samples = [
-            ("행복로 노후 옹벽", "옹벽", 37.5665, 126.9780),
-            ("중앙지하차도", "지하차도", 37.5700, 126.9820),
-            ("한내천 소교량", "교량", 37.5580, 126.9700),
-            ("남부순환 보행터널", "터널", 37.5510, 126.9880),
-            ("서부간선 옹벽구간", "옹벽", 37.5450, 126.9600),
+            ("행복상가 (노후 상가건물)", "상가건물", 37.5665, 126.9780),
+            ("은빛경로당 (취약 복지시설)", "복지시설", 37.5648, 126.9895),
+            ("한울다세대주택", "다세대주택", 37.5602, 126.9760),
+            ("행복로 노후 옹벽", "옹벽", 37.5700, 126.9820),
+            ("중앙지하차도", "지하차도", 37.5510, 126.9880),
         ]
         c.executemany(
             "INSERT INTO facility(name,type,lat,lng) VALUES (?,?,?,?)", samples
@@ -157,8 +158,20 @@ def stats() -> Dict[str, Any]:
                 defect_dist[d["label"]] = defect_dist.get(d["label"], 0) + 1
 
         total = c.execute("SELECT COUNT(*) FROM inspection").fetchone()[0]
+
+        # 트리아지(선별) 집계: D·E 등급만 전문 정밀안전진단으로 에스컬레이션.
+        # 나머지는 저비용 자가점검으로 관리 → 진단 예산 선별 절감.
+        needs_pro = (grade_dist.get("D", 0) or 0) + (grade_dist.get("E", 0) or 0)
+        screened_out = total - needs_pro
+        saving_rate = round(screened_out / total * 100, 1) if total else 0.0
+
         return {
             "total_inspections": total,
             "grade_distribution": grade_dist,
             "defect_distribution": defect_dist,
+            "triage": {
+                "needs_pro_inspection": needs_pro,   # 정밀진단 필요(D·E) 건수
+                "screened_out": screened_out,        # 자가점검으로 선별된(진단 불필요) 건수
+                "saving_rate": saving_rate,          # 진단 대상 선별 절감률(%)
+            },
         }

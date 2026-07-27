@@ -23,6 +23,8 @@ SEVERITY: Dict[str, float] = {
     "material separation": 0.80,
     "exhilaration": 0.60,
     "damage": 0.90,
+    "steel damage": 0.85,   # 강재손상 (드론 데이터셋)
+    "paint damage": 0.35,   # 도장손상 (표면 징후)
     # 한글
     "균열": 0.55,
     "망상균열": 0.65,
@@ -34,18 +36,23 @@ SEVERITY: Dict[str, float] = {
     "재료분리": 0.80,
     "들뜸": 0.60,
     "파손": 0.90,
+    "강재손상": 0.85,
+    "도장손상": 0.35,
 }
+# ※ 실제 클래스 목록은 학습 데이터(YOLO data.yaml)에서 확정됨. 학습 후 이 맵을 그에 맞춰 정렬.
 
 # 균열 폭(px) 기준 (이미지 해상도/촬영거리에 따라 보정 필요)
 WIDTH_PX_FULL_RISK = 25.0   # 이 폭 이상이면 폭 위험도 만점
 
 # 점수(0~100) -> 안전등급 (국토부 법정 안전등급 체계, 선별용 권장조치 포함)
+# (임계점수, 등급, 등급명, 권장조치, 긴급도, 정밀진단필요)
+# needs_pro_inspection = 저비용 자가점검에서 전문 정밀안전진단으로 에스컬레이션할지 여부(트리아지 핵심)
 GRADE_BANDS = [
-    (80, "E", "불량", "즉시 정밀안전진단 및 사용제한 검토"),
-    (60, "D", "미흡", "정밀안전진단 우선 대상"),
-    (40, "C", "보통", "보수 계획 수립 및 정밀점검 권장"),
-    (20, "B", "양호", "주기적 자가점검 유지"),
-    (0,  "A", "우수", "정상 범위, 정기 자가점검 유지"),
+    (80, "E", "불량", "즉시 정밀안전진단 및 사용제한 검토", "즉시", True),
+    (60, "D", "미흡", "정밀안전진단 우선 대상", "1개월 내", True),
+    (40, "C", "보통", "보수 계획 수립 및 정밀점검 권장", "6개월 내", False),
+    (20, "B", "양호", "주기적 자가점검 유지", "정기 점검", False),
+    (0,  "A", "우수", "정상 범위, 정기 자가점검 유지", "정기 점검", False),
 ]
 
 # 종합 점수 가중치 (합 = 1.0)
@@ -71,6 +78,8 @@ def assess(detections: List[Dict[str, Any]], image_w: int, image_h: int) -> Dict
             "risk_grade": "A",
             "grade_label": "우수",
             "recommendation": "탐지된 결함 없음. 정기 자가점검 유지.",
+            "needs_pro_inspection": False,
+            "urgency": "정기 점검",
             "factors": {"severity": 0, "width": 0, "density": 0, "count": 0},
             "defect_summary": {},
         }
@@ -100,10 +109,11 @@ def assess(detections: List[Dict[str, Any]], image_w: int, image_h: int) -> Dict
     )
     score = round(score, 1)
 
-    grade = grade_label = recommendation = None
-    for threshold, g, gl, rec in GRADE_BANDS:
+    grade = grade_label = recommendation = urgency = None
+    needs_pro = False
+    for threshold, g, gl, rec, urg, pro in GRADE_BANDS:
         if score >= threshold:
-            grade, grade_label, recommendation = g, gl, rec
+            grade, grade_label, recommendation, urgency, needs_pro = g, gl, rec, urg, pro
             break
 
     # 결함 종류별 개수 요약
@@ -116,6 +126,8 @@ def assess(detections: List[Dict[str, Any]], image_w: int, image_h: int) -> Dict
         "risk_grade": grade,
         "grade_label": grade_label,
         "recommendation": recommendation,
+        "needs_pro_inspection": needs_pro,
+        "urgency": urgency,
         "factors": {
             "severity": round(severity, 2),
             "width": round(width_factor, 2),

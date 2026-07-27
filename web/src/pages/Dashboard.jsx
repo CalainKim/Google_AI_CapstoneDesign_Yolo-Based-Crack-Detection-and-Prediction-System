@@ -18,6 +18,16 @@ import FacilityMap from "../components/FacilityMap.jsx";
 const GRADE_ORDER = ["A", "B", "C", "D", "E"];
 // 보수 우선순위 정렬용 위험도 순위
 const GRADE_RANK = { E: 5, D: 4, C: 3, B: 2, A: 1 };
+// D·E = 전문 정밀안전진단으로 에스컬레이션 대상 (트리아지 핵심)
+const NEEDS_PRO = new Set(["D", "E"]);
+// 등급별 긴급도(백엔드 GRADE_BANDS와 동일). 구 기록엔 risk.urgency가 없어 등급으로 보정.
+const URGENCY_BY_GRADE = {
+  E: { text: "즉시", cls: "now" },
+  D: { text: "1개월 내", cls: "soon" },
+  C: { text: "6개월 내", cls: "later" },
+  B: { text: "정기 점검", cls: "later" },
+  A: { text: "정기 점검", cls: "later" },
+};
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -39,15 +49,17 @@ export default function Dashboard() {
     ([name, value]) => ({ name, value })
   );
 
-  // 보수 우선순위: 최신 위험등급 높은 순
+  // 정밀진단 우선 대상: D·E 등급만 선별, 위험 높은 순
   const priority = [...inspections]
-    .filter((i) => i.risk_grade)
+    .filter((i) => NEEDS_PRO.has(i.risk_grade))
     .sort(
       (a, b) =>
         (GRADE_RANK[b.risk_grade] || 0) - (GRADE_RANK[a.risk_grade] || 0) ||
         b.risk_score - a.risk_score
     )
     .slice(0, 6);
+
+  const triage = stats?.triage || {};
 
   return (
     <div className="dashboard">
@@ -57,19 +69,22 @@ export default function Dashboard() {
           <span className="stat-value">{stats?.total_inspections ?? "-"}</span>
         </div>
         <div className="card stat danger">
-          <span className="stat-label">긴급(D·E) 시설</span>
-          <span className="stat-value">
-            {(stats?.grade_distribution?.D || 0) +
-              (stats?.grade_distribution?.E || 0)}
+          <span className="stat-label">정밀진단 필요 (D·E)</span>
+          <span className="stat-value">{triage.needs_pro_inspection ?? 0}</span>
+          <span className="stat-sub">전문 정밀안전진단 에스컬레이션</span>
+        </div>
+        <div className="card stat good">
+          <span className="stat-label">진단 선별 절감률</span>
+          <span className="stat-value">{triage.saving_rate ?? 0}%</span>
+          <span className="stat-sub">
+            {stats?.total_inspections
+              ? `${stats.total_inspections}건 중 ${triage.screened_out ?? 0}건 자가점검 관리`
+              : "자가점검으로 선별"}
           </span>
         </div>
         <div className="card stat">
           <span className="stat-label">등록 시설물</span>
           <span className="stat-value">{facilities.length}</span>
-        </div>
-        <div className="card stat">
-          <span className="stat-label">결함 유형 수</span>
-          <span className="stat-value">{defectData.length}</span>
         </div>
       </section>
 
@@ -125,23 +140,30 @@ export default function Dashboard() {
 
       <section className="grid-2">
         <div className="card">
-          <h3>🚨 보수 우선순위 추천</h3>
+          <h3>🚨 정밀진단 우선 대상 (D·E)</h3>
           {priority.length ? (
             <ol className="priority-list">
-              {priority.map((i) => (
-                <li key={i.id}>
-                  <Link to={`/inspection/${i.id}`}>
-                    <GradeBadge grade={i.risk_grade} score={i.risk_score} />
-                    <span className="pl-name">
-                      {i.facility_name || "미지정 시설"}
-                    </span>
-                    <span className="muted">결함 {i.defect_count}개</span>
-                  </Link>
-                </li>
-              ))}
+              {priority.map((i) => {
+                const u = i.risk?.urgency
+                  ? { text: i.risk.urgency, cls: URGENCY_BY_GRADE[i.risk_grade]?.cls || "later" }
+                  : URGENCY_BY_GRADE[i.risk_grade] || { text: "-", cls: "later" };
+                return (
+                  <li key={i.id}>
+                    <Link to={`/inspection/${i.id}`}>
+                      <GradeBadge grade={i.risk_grade} score={i.risk_score} />
+                      <span className="pl-name">
+                        {i.facility_name || "미지정 시설"}
+                      </span>
+                      <span className={`urgency ${u.cls}`}>{u.text}</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ol>
           ) : (
-            <p className="muted">점검 기록이 쌓이면 우선순위가 표시됩니다.</p>
+            <p className="muted">
+              정밀진단이 필요한 D·E 등급 시설이 없습니다. 자가점검으로 관리 가능한 상태입니다.
+            </p>
           )}
         </div>
         <div className="card">

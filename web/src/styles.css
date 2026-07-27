@@ -137,6 +137,45 @@ a {
 .card.stat.danger .stat-value {
   color: #f87171;
 }
+.card.stat.good .stat-value {
+  color: #4ade80;
+}
+.stat-sub {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* 긴급도 태그 */
+.urgency {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.urgency.now {
+  background: #4a1414;
+  color: #f87171;
+}
+.urgency.soon {
+  background: #4a3a12;
+  color: #fbbf24;
+}
+.urgency.later {
+  background: #14324a;
+  color: #60c5f8;
+}
+.pro-flag {
+  background: var(--panel-2);
+  border-left: 4px solid #f87171;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin: 10px 0;
+  font-weight: 600;
+}
+.pro-flag.ok {
+  border-left-color: #4ade80;
+}
 
 .grid-2 {
   display: grid;

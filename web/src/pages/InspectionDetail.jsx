@@ -43,6 +43,17 @@ export default function InspectionDetail() {
           <p className="muted">
             {data.facility_type} · {data.created_at}
           </p>
+          {risk.needs_pro_inspection ? (
+            <div className="pro-flag">
+              🔬 전문 정밀안전진단 필요
+              {risk.urgency ? <span className="urgency now" style={{ marginLeft: 8 }}>{risk.urgency}</span> : null}
+            </div>
+          ) : (
+            <div className="pro-flag ok">
+              ✅ 자가점검 관리 대상 (정밀진단 불필요)
+              {risk.urgency ? <span className="urgency later" style={{ marginLeft: 8 }}>{risk.urgency}</span> : null}
+            </div>
+          )}
           <p className="reco">💡 {risk.recommendation}</p>
 
           <h4>위험도 요인 분석</h4>
