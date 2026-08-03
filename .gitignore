@@ -19,6 +19,9 @@ data-tools/yolo_dataset/
 data-tools/yolo_dataset.zip
 data-tools/aihubshell
 
+# Claude Code (로컬 권한/설정 — 개인 절대경로 포함)
+.claude/
+
 # OS
 Thumbs.db
 .DS_Store
