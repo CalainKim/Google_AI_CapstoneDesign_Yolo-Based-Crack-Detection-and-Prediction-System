@@ -48,7 +48,7 @@ export default function Capture() {
       <div className="card capture-card">
         <h2>📷 현장 시설물 촬영</h2>
         <p className="muted">
-          교량·터널·외벽을 촬영하면 AI가 균열을 탐지하고 위험도를 분석합니다.
+          노후 건물·외벽을 촬영하면 AI가 균열을 탐지하고 안전등급을 산정합니다.
         </p>
 
         <label className="field">

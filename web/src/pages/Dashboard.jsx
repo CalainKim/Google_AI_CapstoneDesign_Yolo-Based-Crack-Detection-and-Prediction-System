@@ -90,11 +90,11 @@ export default function Dashboard() {
 
       <section className="grid-2">
         <div className="card">
-          <h3>시설물 위치 · 위험도</h3>
+          <h3>시설물 위치 · 안전등급</h3>
           <FacilityMap facilities={facilities} />
         </div>
         <div className="card">
-          <h3>위험등급 분포</h3>
+          <h3>안전등급 분포</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={gradeData}>
               <XAxis dataKey="grade" />

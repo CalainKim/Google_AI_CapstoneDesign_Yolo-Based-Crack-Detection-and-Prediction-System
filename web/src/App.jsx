@@ -17,8 +17,8 @@ export default function App() {
         <div className="brand">
           <span className="logo">🛰️</span>
           <div>
-            <h1>AI 균열 탐지 · 붕괴 위험 예측</h1>
-            <p>스마트 시설물 안전관리 시스템</p>
+            <h1>AI 균열 탐지 · 저비용 시설물 안전점검</h1>
+            <p>스마트폰 자가점검 · 유지보수 우선순위 선별 시스템</p>
           </div>
         </div>
         <nav className="nav">

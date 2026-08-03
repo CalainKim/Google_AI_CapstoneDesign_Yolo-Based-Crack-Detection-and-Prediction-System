@@ -56,7 +56,7 @@ export default function InspectionDetail() {
           )}
           <p className="reco">💡 {risk.recommendation}</p>
 
-          <h4>위험도 요인 분석</h4>
+          <h4>안전등급 산정 근거</h4>
           <div className="factors">
             {Object.entries(factors).map(([k, v]) => (
               <div className="factor" key={k}>
