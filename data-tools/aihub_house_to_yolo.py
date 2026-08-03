@@ -38,6 +38,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import List, Tuple, Dict, Any, Optional
 
+from PIL import Image  # 실제 이미지 크기로 정규화 (JSON Resolution은 가로세로가 뒤바뀐 경우가 많음)
+
 # 우리가 학습할 구조물 3종 (거주성 항목은 제외)
 CLASS_NAMES = ["crack", "spalling", "rebar"]
 CLASS_INDEX = {name: i for i, name in enumerate(CLASS_NAMES)}
@@ -141,6 +143,9 @@ def ann_to_yolo_line(ann: Dict[str, Any], cls: str, w: int, h: int) -> Optional[
     if not rect:
         return None
     x1, y1, x2, y2 = rect
+    # 이미지 경계로 clamp (테두리에 걸친 박스가 버려지지 않도록)
+    x1 = min(max(x1, 0.0), w); x2 = min(max(x2, 0.0), w)
+    y1 = min(max(y1, 0.0), h); y2 = min(max(y2, 0.0), h)
     cx = (x1 + x2) / 2 / w
     cy = (y1 + y2) / 2 / h
     bw = (x2 - x1) / w
@@ -248,10 +253,7 @@ def main():
         except Exception:
             skip += 1
             continue
-        anns, w, h = parse_house_json(data)
-        if w == 0 or h == 0:
-            skip += 1
-            continue
+        anns, _jw, _jh = parse_house_json(data)  # JSON 해상도는 신뢰 불가(가로세로 뒤바뀜 다수)
 
         # classid 모드 결함 결정
         if args.defect_from == "classid":
@@ -262,18 +264,29 @@ def main():
                 skip += 1
                 continue
 
+        stem = data.get("Source_Data_Info", {}).get("Source_Data_ID") or jf.stem
+        img_path = find_image(images_dir, stem, img_cache)
+        if img_path is None:
+            skip += 1
+            continue
+
+        # ★ 실제 이미지 크기로 정규화 (JSON Resolution 무시)
+        try:
+            with Image.open(img_path) as im:
+                w, h = im.size
+        except Exception:
+            skip += 1
+            continue
+        if w == 0 or h == 0:
+            skip += 1
+            continue
+
         lines = []
         for a in anns:
             ln = ann_to_yolo_line(a, defect, w, h)
             if ln:
                 lines.append(ln)
         if not lines:
-            skip += 1
-            continue
-
-        stem = data.get("Source_Data_Info", {}).get("Source_Data_ID") or jf.stem
-        img_path = find_image(images_dir, stem, img_cache)
-        if img_path is None:
             skip += 1
             continue
 
