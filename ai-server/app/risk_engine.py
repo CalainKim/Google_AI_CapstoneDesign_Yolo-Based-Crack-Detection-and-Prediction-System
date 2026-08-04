@@ -55,6 +55,35 @@ GRADE_BANDS = [
     (0,  "A", "우수", "정상 범위, 정기 자가점검 유지", "정기 점검", False),
 ]
 
+# 분류기 등급 그룹(우수/보통/불량) → 법정 등급 문자. 3단계를 A~E에 대응.
+GROUP_TO_GRADE = {"우수": "A", "보통": "C", "불량": "D"}
+
+
+def apply_grade(risk: Dict[str, Any], cls: Dict[str, Any]) -> Dict[str, Any]:
+    """분류기 결과(cls)로 risk의 '등급 판정'을 덮어쓴다. 박스·결함요약은 유지.
+
+    - risk_grade/label/권장조치/긴급도/정밀진단필요 = 분류기 등급(A/C/D)
+    - risk_score = 심각도 기대값(불량*100 + 보통*50) → 등급과 일관
+    - factors 는 탐지 근거로 그대로 두고, 분류 확률은 별도 필드로 추가
+    """
+    probs = cls.get("probs", {})
+    grade = GROUP_TO_GRADE.get(cls["group"], "C")
+    for _th, g, gl, rec, urg, pro in GRADE_BANDS:
+        if g == grade:
+            risk.update({
+                "risk_grade": g,
+                "grade_label": gl,
+                "recommendation": rec,
+                "urgency": urg,
+                "needs_pro_inspection": pro,
+            })
+            break
+    risk["risk_score"] = round(100 * probs.get("불량", 0) + 50 * probs.get("보통", 0), 1)
+    risk["grade_source"] = "classifier"
+    risk["grade_confidence"] = cls.get("confidence")
+    risk["grade_probs"] = probs
+    return risk
+
 # 종합 점수 가중치 (합 = 1.0)
 W_SEVERITY = 0.45   # 가장 심각한 결함 종류
 W_WIDTH    = 0.25   # 균열 폭

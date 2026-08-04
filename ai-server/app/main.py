@@ -11,7 +11,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from . import config, db, detector, risk_engine
+from . import config, db, detector, risk_engine, grade_classifier
 
 app = FastAPI(title="AI 균열 탐지 및 시설물 안전점검 선별 시스템", version="0.1.0")
 
@@ -31,7 +31,11 @@ def _startup():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "mock_mode": detector.is_mock()}
+    return {
+        "status": "ok",
+        "mock_mode": detector.is_mock(),
+        "grade_classifier": grade_classifier.available(),
+    }
 
 
 @app.get("/api/facilities")
@@ -56,6 +60,11 @@ async def create_inspection(
 
     det = detector.detect(str(upload_path))
     risk = risk_engine.assess(det["detections"], det["width"], det["height"])
+
+    # 등급 판정: 분류 모델이 있으면 그 결과로 등급을 덮어씀(휴리스틱보다 정확).
+    cls = grade_classifier.classify(str(upload_path))
+    if cls:
+        risk = risk_engine.apply_grade(risk, cls)
 
     result_path = config.RESULT_DIR / f"{uid}_result.{ext}"
     detector.draw_result(str(upload_path), det["detections"], str(result_path))

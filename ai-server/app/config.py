@@ -11,6 +11,10 @@ DB_PATH = DATA_DIR / "app.db"            # SQLite DB 파일
 # 학습한 YOLO 모델 가중치 위치. 이 파일이 있으면 진짜 추론, 없으면 mock 모드.
 MODEL_PATH = BASE_DIR / "models" / "best.pt"
 
+# 안전등급 분류 모델(YOLO-cls). 있으면 등급 판정을 분류기가, 없으면 휴리스틱이 담당.
+GRADE_MODEL_PATH = BASE_DIR / "models" / "grade_cls.pt"
+GRADE_IMGSZ = 320
+
 # 탐지 신뢰도 임계값
 CONF_THRESHOLD = 0.25
 
