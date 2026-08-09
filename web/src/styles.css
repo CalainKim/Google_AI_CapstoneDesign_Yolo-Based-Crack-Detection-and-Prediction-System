@@ -1810,3 +1810,11 @@ h4 .src-tag {
 @media (prefers-reduced-motion: reduce) {
   .bl-fill, .sf-fill { transition: none; }
 }
+
+/* 대시보드 섹션 간 여백 — 카드형 섹션(grid가 아닌 단독 카드)도 동일 간격 유지 */
+.dashboard > .card {
+  margin-bottom: 14px;
+}
+.dashboard > .card:last-child {
+  margin-bottom: 0;
+}
