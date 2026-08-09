@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getFacilities, getInspections } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 
 const STATUS_CLS = { "접수": "s0", "진단 의뢰": "s1", "조치 완료": "s2" };
 
@@ -87,9 +88,12 @@ export default function FacilityDetail() {
             ))}
           </ul>
         ) : (
-          <p className="muted">
-            아직 점검 기록이 없습니다. 현장 점검에서 이 시설물을 선택해 촬영해 보세요.
-          </p>
+          <EmptyState
+            title="아직 점검 기록이 없습니다"
+            desc="현장 점검에서 이 시설물을 선택해 촬영하면 이력이 쌓입니다."
+            actionTo="/capture"
+            actionLabel="점검 시작하기"
+          />
         )}
       </div>
     </div>

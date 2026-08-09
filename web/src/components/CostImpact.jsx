@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-
-// 정밀안전진단 1건당 비용 가정 (만원). 실제 수백만~수천만 원 수준에서 보수적으로 설정.
-const COST_PER_DIAGNOSIS = 500;
+import { getCostPerDiagnosis, formatWon } from "../lib/settings.js";
 
 function useCountUp(target, duration = 900) {
   const [n, setN] = useState(0);
@@ -22,26 +20,32 @@ function useCountUp(target, duration = 900) {
   return n;
 }
 
-const won = (man) =>
-  man >= 10000
-    ? `${(man / 10000).toFixed(man % 10000 === 0 ? 0 : 1)}억 원`
-    : `${man.toLocaleString()}만 원`;
-
-// 선별로 절감한 진단 비용 — 발표의 핵심 메시지
-export default function CostImpact({ total, needsPro }) {
-  const before = (total || 0) * COST_PER_DIAGNOSIS;
-  const after = (needsPro || 0) * COST_PER_DIAGNOSIS;
+// 선별로 절감한 진단 비용 — 서비스의 핵심 가치
+export default function CostImpact({ total, needsPro, unitCost }) {
+  const cost = unitCost || getCostPerDiagnosis();
+  const before = (total || 0) * cost;
+  const after = (needsPro || 0) * cost;
   const saved = before - after;
   const rate = before ? Math.round((saved / before) * 100) : 0;
   const shown = useCountUp(saved);
 
-  if (!total) return null;
+  if (!total) {
+    return (
+      <section className="cost-impact empty">
+        <div className="ci-main">
+          <span className="ci-label">AI 선별로 절감한 진단 비용</span>
+          <strong className="ci-value">0원</strong>
+          <span className="ci-sub">점검 기록이 쌓이면 절감 효과가 계산됩니다.</span>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="cost-impact">
       <div className="ci-main">
         <span className="ci-label">AI 선별로 절감한 진단 비용</span>
-        <strong className="ci-value">{won(shown)}</strong>
+        <strong className="ci-value">{formatWon(shown)}</strong>
         <span className="ci-sub">
           점검 {total}건 중 {needsPro}건만 정밀진단 대상으로 선별 · 절감률 {rate}%
         </span>
@@ -49,16 +53,16 @@ export default function CostImpact({ total, needsPro }) {
       <div className="ci-compare">
         <div className="ci-row">
           <span>전수 진단 시</span>
-          <b className="ci-before">{won(before)}</b>
+          <b className="ci-before">{formatWon(before)}</b>
         </div>
         <div className="ci-bar">
           <div className="ci-bar-fill" style={{ width: `${100 - rate}%` }} />
         </div>
         <div className="ci-row">
           <span>AI 선별 후</span>
-          <b className="ci-after">{won(after)}</b>
+          <b className="ci-after">{formatWon(after)}</b>
         </div>
-        <p className="ci-note">정밀안전진단 1건당 {COST_PER_DIAGNOSIS}만 원 가정</p>
+        <p className="ci-note">정밀안전진단 1건당 {cost.toLocaleString()}만 원 기준</p>
       </div>
     </section>
   );

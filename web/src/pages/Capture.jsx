@@ -174,7 +174,10 @@ export default function Capture() {
       )}
 
       {result && !loading && (
-        <div className="card result-card" ref={resultRef}>
+        <div
+          className={`card result-card tone tone-${(result.risk.risk_grade || "").toLowerCase()}`}
+          ref={resultRef}
+        >
           <div className="result-head">
             <h3>분석 결과</h3>
             <GradeBadge

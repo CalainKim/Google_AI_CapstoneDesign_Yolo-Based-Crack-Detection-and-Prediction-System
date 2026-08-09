@@ -97,7 +97,7 @@ export default function InspectionDetail() {
           </p>
         </div>
 
-        <div className="card">
+        <div className={`card tone tone-${(data.risk_grade || "").toLowerCase()}`}>
           <div className="result-head">
             <h3>{data.facility_name || "미지정 시설"}</h3>
             <GradeBadge grade={data.risk_grade} score={data.risk_score} />

@@ -14,7 +14,7 @@ import {
 import { getStats, getFacilities, getInspections, GRADE_COLORS } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
 import FacilityMap from "../components/FacilityMap.jsx";
-import CostImpact from "../components/CostImpact.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 
 const GRADE_ORDER = ["A", "B", "C", "D", "E"];
 // 보수 우선순위 정렬용 위험도 순위
@@ -74,11 +74,6 @@ export default function Dashboard() {
           미조치 정밀진단 대상이 <b>{unresolved}건</b> 있습니다. 우선 조치가 필요합니다.
         </div>
       )}
-      <CostImpact
-        total={stats?.total_inspections}
-        needsPro={triage.needs_pro_inspection}
-      />
-
       <section className="cards">
         <div className="card stat">
           <span className="stat-label">총 점검 건수</span>
@@ -177,9 +172,11 @@ export default function Dashboard() {
               })}
             </ol>
           ) : (
-            <p className="muted">
-              정밀진단이 필요한 D·E 등급 시설이 없습니다. 자가점검으로 관리 가능한 상태입니다.
-            </p>
+            <EmptyState
+              compact
+              title="정밀진단 대상이 없습니다"
+              desc="현재 등록된 점검 결과는 모두 자가점검으로 관리 가능한 상태입니다."
+            />
           )}
         </div>
         <div className="card">
@@ -224,8 +221,14 @@ export default function Dashboard() {
               ))}
               {!inspections.length && (
                 <tr>
-                  <td colSpan="5" className="muted">
-                    아직 점검 기록이 없습니다. '현장 촬영'에서 사진을 올려보세요.
+                  <td colSpan="5">
+                    <EmptyState
+                      compact
+                      title="아직 점검 기록이 없습니다"
+                      desc="현장 점검에서 첫 사진을 올려보세요."
+                      actionTo="/capture"
+                      actionLabel="첫 점검 시작하기"
+                    />
                   </td>
                 </tr>
               )}
