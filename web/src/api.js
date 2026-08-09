@@ -51,16 +51,55 @@ export async function getInspection(id) {
   return r.json();
 }
 
-export async function uploadInspection(file, facilityId, part) {
+export async function uploadInspection(file, facilityId, part, extra = {}) {
   const form = new FormData();
   form.append("image", file);
   if (facilityId) form.append("facility_id", facilityId);
   if (part) form.append("part", part);
+  if (extra.note) form.append("note", extra.note);
+  if (extra.lat != null) form.append("lat", extra.lat);
+  if (extra.lng != null) form.append("lng", extra.lng);
   const r = await fetch(`${API_BASE}/api/inspections`, {
     method: "POST",
     body: form,
   });
   if (!r.ok) throw new Error("분석 요청 실패");
+  return r.json();
+}
+
+export async function sendFeedback(id, feedback, actualGrade) {
+  const r = await fetch(`${API_BASE}/api/inspections/${id}/feedback`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ feedback, actual_grade: actualGrade || null }),
+  });
+  if (!r.ok) throw new Error("피드백 저장 실패");
+  return r.json();
+}
+
+export async function saveNote(id, note) {
+  const r = await fetch(`${API_BASE}/api/inspections/${id}/note`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ note }),
+  });
+  if (!r.ok) throw new Error("메모 저장 실패");
+  return r.json();
+}
+
+export async function updateFacility(id, { name, type }) {
+  const r = await fetch(`${API_BASE}/api/facilities/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, type }),
+  });
+  if (!r.ok) throw new Error("시설물 수정 실패");
+  return r.json();
+}
+
+export async function deleteFacility(id) {
+  const r = await fetch(`${API_BASE}/api/facilities/${id}`, { method: "DELETE" });
+  if (!r.ok) throw new Error("시설물 삭제 실패");
   return r.json();
 }
 

@@ -58,6 +58,9 @@ GRADE_BANDS = [
 # 분류기 등급 그룹(우수/보통/불량) → 법정 등급 문자. 3단계를 A~E에 대응.
 GROUP_TO_GRADE = {"우수": "A", "보통": "C", "불량": "D"}
 
+# 이 값 미만이면 판정을 단정하지 않고 재촬영을 권한다.
+LOW_CONFIDENCE = 0.55
+
 
 def apply_grade(risk: Dict[str, Any], cls: Dict[str, Any]) -> Dict[str, Any]:
     """분류기 결과(cls)로 risk의 '등급 판정'을 덮어쓴다. 박스·결함요약은 유지.
@@ -82,6 +85,17 @@ def apply_grade(risk: Dict[str, Any], cls: Dict[str, Any]) -> Dict[str, Any]:
     risk["grade_source"] = "classifier"
     risk["grade_confidence"] = cls.get("confidence")
     risk["grade_probs"] = probs
+
+    # 판정 신뢰도가 낮으면 단정하지 않고 재촬영을 권한다(안전 도구로서의 태도).
+    conf = cls.get("confidence") or 0
+    if conf < LOW_CONFIDENCE:
+        risk["low_confidence"] = True
+        risk["confidence_note"] = (
+            f"판정 신뢰도가 {round(conf * 100)}%로 낮습니다. 결함 부위가 화면 중앙에 "
+            "선명하게 담기도록 다시 촬영하면 더 정확한 판정을 받을 수 있습니다."
+        )
+    else:
+        risk["low_confidence"] = False
     return risk
 
 # 종합 점수 가중치 (합 = 1.0)

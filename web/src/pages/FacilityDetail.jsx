@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { getFacilities, getInspections, getFacilityAssessment, imageUrl } from "../api";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import {
+  getFacilities,
+  getInspections,
+  getFacilityAssessment,
+  imageUrl,
+  updateFacility,
+  deleteFacility,
+} from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 
@@ -14,6 +21,21 @@ export default function FacilityDetail() {
   const [items, setItems] = useState([]);
   const [assess, setAssess] = useState(null);
   const [compare, setCompare] = useState([]); // 비교 선택된 점검 id 2개
+  const [editing, setEditing] = useState(null); // {name, type}
+  const navigate = useNavigate();
+
+  async function onSaveFacility(e) {
+    e.preventDefault();
+    await updateFacility(id, editing);
+    setFacility({ ...facility, ...editing });
+    setEditing(null);
+  }
+
+  async function onDeleteFacility() {
+    if (!window.confirm("이 시설물을 삭제할까요? 점검 기록은 미지정 상태로 남습니다.")) return;
+    await deleteFacility(id);
+    navigate("/");
+  }
 
   useEffect(() => {
     getFacilities().then((fs) =>
@@ -63,10 +85,59 @@ export default function FacilityDetail() {
       </Link>
 
       <div className="card facility-head">
-        <div>
-          <h2>{facility ? facility.name : `시설물 #${id}`}</h2>
-          <p className="muted">{facility?.type}</p>
-        </div>
+        {editing ? (
+          <form className="facility-edit no-print" onSubmit={onSaveFacility}>
+            <input
+              value={editing.name}
+              onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+              placeholder="시설물 이름"
+            />
+            <select
+              value={editing.type}
+              onChange={(e) => setEditing({ ...editing, type: e.target.value })}
+            >
+              {["상가건물", "다세대주택", "단독주택", "아파트", "복지시설", "옹벽", "지하차도", "기타"].map(
+                (t) => (
+                  <option key={t}>{t}</option>
+                )
+              )}
+            </select>
+            <button type="submit" className="action-btn primary-tone">
+              저장
+            </button>
+            <button type="button" className="action-btn" onClick={() => setEditing(null)}>
+              취소
+            </button>
+          </form>
+        ) : (
+          <div>
+            <h2>{facility ? facility.name : `시설물 #${id}`}</h2>
+            <p className="muted">
+              {facility?.type}
+              {facility?.schedule?.due_date && (
+                <>
+                  {" · 재점검 기한 "}
+                  <span className={`due-chip ${facility.schedule.status}`}>
+                    {facility.schedule.due_date}
+                  </span>
+                </>
+              )}
+            </p>
+            {facility && (
+              <div className="facility-actions no-print">
+                <button
+                  className="action-btn"
+                  onClick={() => setEditing({ name: facility.name, type: facility.type })}
+                >
+                  정보 수정
+                </button>
+                <button className="action-btn danger-tone" onClick={onDeleteFacility}>
+                  삭제
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         <div className="facility-kpis">
           <div className="kpi">
             <span className="kpi-label">최신 등급</span>

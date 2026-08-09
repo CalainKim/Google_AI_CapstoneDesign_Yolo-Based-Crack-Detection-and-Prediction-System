@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-from . import config
+from . import config, schedule
 
 
 def _conn():
@@ -45,6 +45,11 @@ def init_db():
         for ddl in (
             "ALTER TABLE inspection ADD COLUMN status TEXT DEFAULT '접수'",
             "ALTER TABLE inspection ADD COLUMN part TEXT DEFAULT '미지정'",
+            "ALTER TABLE inspection ADD COLUMN note TEXT",
+            "ALTER TABLE inspection ADD COLUMN shot_lat REAL",
+            "ALTER TABLE inspection ADD COLUMN shot_lng REAL",
+            "ALTER TABLE inspection ADD COLUMN feedback TEXT",        # agree | disagree
+            "ALTER TABLE inspection ADD COLUMN feedback_grade TEXT",  # 사용자가 본 실제 등급
         ):
             try:
                 c.execute(ddl)
@@ -86,6 +91,11 @@ def list_facilities() -> List[Dict[str, Any]]:
             f["latest_grade"] = latest["risk_grade"] if latest else None
             f["latest_score"] = latest["risk_score"] if latest else None
             f["latest_at"] = latest["created_at"] if latest else None
+            f["inspection_count"] = c.execute(
+                "SELECT COUNT(*) FROM inspection WHERE facility_id=?", (r["id"],)
+            ).fetchone()[0]
+            # 등급별 재점검 기한
+            f["schedule"] = schedule.next_due(f["latest_at"], f["latest_grade"])
             facilities.append(f)
         return facilities
 
@@ -126,13 +136,17 @@ def create_inspection(
     risk: Dict[str, Any],
     is_mock: bool,
     part: str = "미지정",
+    note: Optional[str] = None,
+    shot_lat: Optional[float] = None,
+    shot_lng: Optional[float] = None,
 ) -> int:
     with _conn() as c:
         cur = c.execute(
             """INSERT INTO inspection
                (facility_id,image_path,result_image_path,created_at,
-                risk_grade,risk_score,defect_count,detections_json,risk_json,is_mock,part)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                risk_grade,risk_score,defect_count,detections_json,risk_json,is_mock,part,
+                note,shot_lat,shot_lng)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 facility_id,
                 image_path,
@@ -145,9 +159,48 @@ def create_inspection(
                 json.dumps(risk, ensure_ascii=False),
                 1 if is_mock else 0,
                 part,
+                note,
+                shot_lat,
+                shot_lng,
             ),
         )
         return cur.lastrowid
+
+
+def update_inspection_feedback(
+    inspection_id: int, feedback: str, actual_grade: Optional[str] = None
+) -> bool:
+    """사용자 판정 피드백 저장 (재학습용 데이터 축적)."""
+    if feedback not in ("agree", "disagree"):
+        return False
+    with _conn() as c:
+        cur = c.execute(
+            "UPDATE inspection SET feedback=?, feedback_grade=? WHERE id=?",
+            (feedback, actual_grade, inspection_id),
+        )
+        return cur.rowcount > 0
+
+
+def update_inspection_note(inspection_id: int, note: str) -> bool:
+    with _conn() as c:
+        cur = c.execute("UPDATE inspection SET note=? WHERE id=?", (note, inspection_id))
+        return cur.rowcount > 0
+
+
+def update_facility(facility_id: int, name: str, type_: str) -> bool:
+    with _conn() as c:
+        cur = c.execute(
+            "UPDATE facility SET name=?, type=? WHERE id=?", (name, type_, facility_id)
+        )
+        return cur.rowcount > 0
+
+
+def delete_facility(facility_id: int) -> bool:
+    """시설물 삭제. 점검 기록은 미지정 상태로 남긴다."""
+    with _conn() as c:
+        c.execute("UPDATE inspection SET facility_id=NULL WHERE facility_id=?", (facility_id,))
+        cur = c.execute("DELETE FROM facility WHERE id=?", (facility_id,))
+        return cur.rowcount > 0
 
 
 def _row_to_inspection(r: sqlite3.Row) -> Dict[str, Any]:

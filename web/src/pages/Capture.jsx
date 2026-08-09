@@ -36,7 +36,20 @@ export default function Capture() {
   const [newType, setNewType] = useState("상가건물");
   const [zoom, setZoom] = useState(null);
   const [shareMsg, setShareMsg] = useState("");
+  const [note, setNote] = useState("");
+  const [useGps, setUseGps] = useState(true);
+  const [coords, setCoords] = useState(null);
   const resultRef = useRef(null);
+
+  // 촬영 위치 기록 (권한 거부 시 조용히 생략)
+  useEffect(() => {
+    if (!useGps || !navigator.geolocation) return setCoords(null);
+    navigator.geolocation.getCurrentPosition(
+      (p) => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => setCoords(null),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  }, [useGps]);
 
   useEffect(() => {
     getFacilities().then(setFacilities).catch(() => {});
@@ -77,7 +90,7 @@ export default function Capture() {
     // 오프라인이면 대기열에 저장했다가 연결 후 자동 전송
     if (!navigator.onLine) {
       try {
-        await enqueue({ file, facilityId: facilityId || null, part });
+        await enqueue({ file, facilityId: facilityId || null, part, note, coords });
         window.dispatchEvent(new Event("ansim:queued"));
         setQueuedMsg("오프라인 상태입니다. 촬영을 저장했고 연결되면 자동으로 분석합니다.");
         setFile(null);
@@ -91,7 +104,11 @@ export default function Capture() {
     }
 
     try {
-      const res = await uploadInspection(file, facilityId || null, part);
+      const res = await uploadInspection(file, facilityId || null, part, {
+        note: note || undefined,
+        lat: coords?.lat,
+        lng: coords?.lng,
+      });
       if (mode === "series") {
         // 결과를 세션에 쌓고 바로 다음 촬영 준비
         setSession((prev) => [
@@ -108,6 +125,7 @@ export default function Capture() {
         setFile(null);
         setPreview(null);
         setResult(null);
+        setNote("");
       } else {
         setResult(res);
       }
@@ -272,6 +290,35 @@ export default function Capture() {
             </button>
           </form>
         </details>
+
+        <label className="field">
+          <span>현장 메모 (선택)</span>
+          <input
+            type="text"
+            className="note-input"
+            placeholder="예: 3층 계단실 우측"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </label>
+
+        <label className="gps-toggle no-print">
+          <input
+            type="checkbox"
+            checked={useGps}
+            onChange={(e) => setUseGps(e.target.checked)}
+          />
+          <span>
+            촬영 위치 기록
+            <em className="muted">
+              {useGps
+                ? coords
+                  ? ` · ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`
+                  : " · 위치 확인 중"
+                : " · 사용 안 함"}
+            </em>
+          </span>
+        </label>
 
         <div className="shoot-guide">
           <b>촬영 가이드</b>

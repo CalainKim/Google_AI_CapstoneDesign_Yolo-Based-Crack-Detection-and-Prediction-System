@@ -25,7 +25,7 @@ function tx(db, mode) {
   return db.transaction(STORE, mode).objectStore(STORE);
 }
 
-export async function enqueue({ file, facilityId, part }) {
+export async function enqueue({ file, facilityId, part, note, coords }) {
   const db = await openDB();
   const buf = await file.arrayBuffer();
   return new Promise((resolve, reject) => {
@@ -34,6 +34,9 @@ export async function enqueue({ file, facilityId, part }) {
       name: file.name || "capture.jpg",
       facilityId: facilityId || null,
       part: part || "미지정",
+      note: note || null,
+      lat: coords?.lat ?? null,
+      lng: coords?.lng ?? null,
       at: new Date().toISOString(),
     });
     req.onsuccess = () => resolve(req.result);
@@ -67,7 +70,11 @@ export async function flushQueue() {
   for (const it of items) {
     try {
       const file = new File([it.blob], it.name, { type: it.blob.type });
-      await uploadInspection(file, it.facilityId, it.part);
+      await uploadInspection(file, it.facilityId, it.part, {
+        note: it.note || undefined,
+        lat: it.lat ?? undefined,
+        lng: it.lng ?? undefined,
+      });
       await remove(it.id);
       sent += 1;
     } catch {

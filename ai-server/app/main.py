@@ -79,6 +79,9 @@ async def create_inspection(
     image: UploadFile = File(...),
     facility_id: Optional[int] = Form(None),
     part: str = Form("미지정"),
+    note: Optional[str] = Form(None),
+    lat: Optional[float] = Form(None),
+    lng: Optional[float] = Form(None),
 ):
     """이미지 업로드 → 균열 탐지 → 위험도 산정 → 저장 → 결과 반환."""
     if not image.content_type or not image.content_type.startswith("image/"):
@@ -110,11 +113,15 @@ async def create_inspection(
         risk=risk,
         is_mock=det["mock"],
         part=part_name,
+        note=(note or None),
+        shot_lat=lat,
+        shot_lng=lng,
     )
 
     return {
         "id": inspection_id,
         "part": part_name,
+        "note": note,
         "mock_mode": det["mock"],
         "image_size": {"width": det["width"], "height": det["height"]},
         "detections": det["detections"],
@@ -126,6 +133,47 @@ async def create_inspection(
 @app.get("/api/inspections")
 def inspections(grade: Optional[str] = None, facility_id: Optional[int] = None):
     return db.list_inspections(grade=grade, facility_id=facility_id)
+
+
+class FeedbackIn(BaseModel):
+    feedback: str                      # agree | disagree
+    actual_grade: Optional[str] = None # disagree 시 사용자가 판단한 등급
+
+
+@app.patch("/api/inspections/{inspection_id}/feedback")
+def update_feedback(inspection_id: int, body: FeedbackIn):
+    """판정 피드백 저장. 축적된 기록은 모델 재학습 데이터로 활용한다."""
+    if not db.update_inspection_feedback(inspection_id, body.feedback, body.actual_grade):
+        raise HTTPException(400, "피드백을 저장하지 못했습니다.")
+    return {"id": inspection_id, "feedback": body.feedback, "actual_grade": body.actual_grade}
+
+
+class NoteIn(BaseModel):
+    note: str
+
+
+@app.patch("/api/inspections/{inspection_id}/note")
+def update_note(inspection_id: int, body: NoteIn):
+    """점검 메모 (AI가 볼 수 없는 현장 맥락 보완)."""
+    if not db.update_inspection_note(inspection_id, body.note):
+        raise HTTPException(404, "점검 기록을 찾을 수 없습니다.")
+    return {"id": inspection_id, "note": body.note}
+
+
+@app.patch("/api/facilities/{facility_id}")
+def edit_facility(facility_id: int, body: FacilityIn):
+    if not body.name.strip():
+        raise HTTPException(400, "시설물 이름을 입력하세요.")
+    if not db.update_facility(facility_id, body.name.strip(), body.type.strip() or "건축물"):
+        raise HTTPException(404, "시설물을 찾을 수 없습니다.")
+    return {"id": facility_id, "name": body.name, "type": body.type}
+
+
+@app.delete("/api/facilities/{facility_id}")
+def remove_facility(facility_id: int):
+    if not db.delete_facility(facility_id):
+        raise HTTPException(404, "시설물을 찾을 수 없습니다.")
+    return {"deleted": facility_id}
 
 
 @app.get("/api/parts")

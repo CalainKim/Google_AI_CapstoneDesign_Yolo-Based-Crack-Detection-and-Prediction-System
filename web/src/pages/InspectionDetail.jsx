@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getInspection, imageUrl, setInspectionStatus } from "../api";
+import { getInspection, imageUrl, setInspectionStatus, saveNote } from "../api";
+import FeedbackBox from "../components/FeedbackBox.jsx";
 import GradeBadge from "../components/GradeBadge.jsx";
 import SummaryCard from "../components/SummaryCard.jsx";
 import Lightbox from "../components/Lightbox.jsx";
@@ -38,6 +39,18 @@ export default function InspectionDetail() {
   useEffect(() => {
     getInspection(id).then(setData).catch((e) => setError(e.message));
   }, [id]);
+
+  const [noteDraft, setNoteDraft] = useState(null);
+  const [noteMsg, setNoteMsg] = useState("");
+
+  async function onSaveNote(e) {
+    e.preventDefault();
+    await saveNote(data.id, noteDraft ?? "");
+    setData({ ...data, note: noteDraft ?? "" });
+    setNoteDraft(null);
+    setNoteMsg("메모를 저장했습니다");
+    setTimeout(() => setNoteMsg(""), 1800);
+  }
 
   async function changeStatus(status) {
     await setInspectionStatus(data.id, status);
@@ -103,9 +116,15 @@ export default function InspectionDetail() {
             <GradeBadge grade={data.risk_grade} score={data.risk_score} />
           </div>
           <p className="muted">
-            {data.facility_type} · {data.created_at}
+            {data.part || "미지정"} · {data.created_at}
             {data.is_mock ? " · mock" : " · AI 추론"}
+            {data.shot_lat != null && " · 위치 기록됨"}
           </p>
+
+          {/* 신뢰도가 낮으면 판정을 단정하지 않고 재촬영을 권한다 */}
+          {risk.low_confidence && (
+            <div className="low-conf">{risk.confidence_note}</div>
+          )}
 
           {/* AI 종합 소견 */}
           <SummaryCard risk={risk} />
@@ -203,6 +222,47 @@ export default function InspectionDetail() {
               </tbody>
             </table>
           ) : null}
+
+          {/* 현장 메모 — AI가 볼 수 없는 맥락 보완 */}
+          <h4>현장 메모</h4>
+          {noteDraft === null ? (
+            <div className="note-view">
+              <p className={data.note ? "note-text" : "muted"}>
+                {data.note || "작성된 메모가 없습니다."}
+              </p>
+              <button
+                className="action-btn no-print"
+                onClick={() => setNoteDraft(data.note || "")}
+              >
+                {data.note ? "메모 수정" : "메모 작성"}
+              </button>
+              {noteMsg && <span className="share-msg">{noteMsg}</span>}
+            </div>
+          ) : (
+            <form className="note-form no-print" onSubmit={onSaveNote}>
+              <textarea
+                value={noteDraft}
+                onChange={(e) => setNoteDraft(e.target.value)}
+                placeholder="예: 3층 계단실 우측 기둥, 작년 보수 이력 있음"
+                rows={3}
+              />
+              <div className="toolbar-actions">
+                <button type="submit" className="action-btn primary-tone">
+                  저장
+                </button>
+                <button type="button" className="action-btn" onClick={() => setNoteDraft(null)}>
+                  취소
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* 판정 피드백 */}
+          <FeedbackBox
+            inspectionId={data.id}
+            initial={data.feedback}
+            initialGrade={data.feedback_grade}
+          />
 
           {/* ③ 참고: 탐지 기반 지표 (등급은 위 분류 결과 기준) */}
           <details className="aux">
