@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import { getStats, getFacilities, getInspections, GRADE_COLORS } from "../api";
+  getStats,
+  getFacilities,
+  getInspections,
+  getParts,
+  GRADE_COLORS,
+  RISK_LEVELS,
+} from "../api";
+import { SegmentBar, BarList, StageFlow } from "../components/charts.jsx";
 import GradeBadge from "../components/GradeBadge.jsx";
 import FacilityMap from "../components/FacilityMap.jsx";
 import EmptyState from "../components/EmptyState.jsx";
@@ -38,21 +35,63 @@ export default function Dashboard() {
   const [fStatus, setFStatus] = useState("");
   const [fPart, setFPart] = useState("");
   const [query, setQuery] = useState("");
+  const [parts, setParts] = useState([]);
 
   useEffect(() => {
     getStats().then(setStats).catch(() => {});
     getFacilities().then(setFacilities).catch(() => {});
     getInspections().then(setInspections).catch(() => {});
+    getParts().then(setParts).catch(() => {});
   }, []);
 
-  const gradeData = GRADE_ORDER.map((g) => ({
-    grade: g,
-    count: stats?.grade_distribution?.[g] || 0,
+  const gradeDist = stats?.grade_distribution || {};
+
+  // 조치 수준별 집계 (색은 3단계, 정확한 등급은 아래 목록에 표기)
+  const levelSegments = RISK_LEVELS.map((lv) => ({
+    key: lv.key,
+    label: lv.label,
+    color: lv.color,
+    sub: lv.sub,
+    value: lv.grades.reduce((a, g) => a + (gradeDist[g] || 0), 0),
   }));
 
-  const defectData = Object.entries(stats?.defect_distribution || {}).map(
-    ([name, value]) => ({ name, value })
-  );
+  const DEFECT_KO = { crack: "균열", spalling: "박리·박락", rebar: "철근노출" };
+  const defectRows = Object.entries(stats?.defect_distribution || {})
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => ({ key: k, label: DEFECT_KO[k] || k, value: v, color: "#3182f6" }));
+
+  // 부위별 위험 현황 — 주요부재를 강조 (우리 판정 로직의 핵심)
+  const structuralSet = new Set(parts.filter((p) => p.structural).map((p) => p.name));
+  const partMap = {};
+  inspections.forEach((i) => {
+    const p = i.part || "미지정";
+    if (!partMap[p]) partMap[p] = { total: 0, danger: 0 };
+    partMap[p].total += 1;
+    if (NEEDS_PRO.has(i.risk_grade)) partMap[p].danger += 1;
+  });
+  const partRows = Object.entries(partMap)
+    .sort((a, b) => b[1].danger - a[1].danger || b[1].total - a[1].total)
+    .map(([name, v]) => ({
+      key: name,
+      label: name,
+      value: v.total,
+      emphasis: structuralSet.has(name),
+      color: v.danger ? "#c8102e" : "#12866b",
+      note: v.danger
+        ? `${v.danger}건이 정밀진단 대상`
+        : "정밀진단 대상 없음",
+    }));
+
+  // 조치 진행 단계
+  const stageCount = { "접수": 0, "진단 의뢰": 0, "조치 완료": 0 };
+  inspections.forEach((i) => {
+    stageCount[i.status || "접수"] = (stageCount[i.status || "접수"] || 0) + 1;
+  });
+  const stages = Object.entries(stageCount).map(([label, value]) => ({
+    key: label,
+    label,
+    value,
+  }));
 
   // 정밀진단 우선 대상: D·E 등급만 선별, 위험 높은 순
   const priority = [...inspections]
@@ -178,57 +217,39 @@ export default function Dashboard() {
         </div>
       </section>
 
+      <section className="card">
+        <div className="list-head">
+          <h3>조치 수준별 분포</h3>
+          <span className="muted">
+            등급별 {GRADE_ORDER.filter((g) => gradeDist[g]).map((g) => `${g} ${gradeDist[g]}`).join(" · ")}
+          </span>
+        </div>
+        <SegmentBar segments={levelSegments} total={stats?.total_inspections} />
+      </section>
+
       <section className="grid-2">
         <div className="card">
           <h3>시설물 위치 · 안전등급</h3>
           <FacilityMap facilities={facilities} />
         </div>
         <div className="card">
-          <h3>안전등급 분포</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={gradeData}>
-              <XAxis dataKey="grade" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Bar dataKey="count">
-                {gradeData.map((d) => (
-                  <Cell key={d.grade} fill={GRADE_COLORS[d.grade]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <h3 style={{ marginTop: 16 }}>결함 종류 분포</h3>
-          {defectData.length ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={defectData}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={70}
-                  label
-                >
-                  {defectData.map((_, i) => (
-                    <Cell
-                      key={i}
-                      fill={
-                        ["#e53935", "#fb8c00", "#fdd835", "#43a047", "#1e88e5", "#8e24aa"][
-                          i % 6
-                        ]
-                      }
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="muted">아직 데이터가 없습니다.</p>
-          )}
+          <h3>부위별 점검 현황</h3>
+          <p className="muted chart-sub">
+            주요부재의 손상은 건물 전체 안전에 영향을 줍니다.
+          </p>
+          <BarList rows={partRows} />
         </div>
       </section>
 
       <section className="grid-2">
+        <div className="card">
+          <h3>조치 진행 현황</h3>
+          <p className="muted chart-sub">접수에서 조치 완료까지의 처리 단계입니다.</p>
+          <StageFlow stages={stages} total={inspections.length} />
+
+          <h3 style={{ marginTop: 22 }}>결함 종류</h3>
+          <BarList rows={defectRows} unit="개" />
+        </div>
         <div className="card">
           <h3>정밀진단 우선 대상 (D·E)</h3>
           {priority.length ? (
@@ -258,7 +279,9 @@ export default function Dashboard() {
             />
           )}
         </div>
-        <div className="card">
+      </section>
+
+      <section className="card">
           <div className="list-head">
             <h3>점검 내역</h3>
             <button className="action-btn" onClick={exportCsv} disabled={!filtered.length}>
@@ -372,7 +395,6 @@ export default function Dashboard() {
               )}
             </tbody>
           </table>
-        </div>
       </section>
     </div>
   );

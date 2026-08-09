@@ -118,11 +118,21 @@ export function imageUrl(id) {
   return `${API_BASE}/api/inspections/${id}/image`;
 }
 
-// 위험등급 색상 (대시보드/배지 공통)
+// 안전등급 색상.
+// 색은 '조치 수준' 3단계를 나타내고, 정확한 등급은 배지의 문자가 알려준다.
+// (5개 등급을 색만으로 구분하면 색각 이상에서 인접 등급이 뭉개진다 — 팔레트 검증 실패)
+//   양호(A·B) 자가점검 / 주의(C) 보수 권장 / 위험(D·E) 정밀진단
 export const GRADE_COLORS = {
-  A: "#2e9e5b",
-  B: "#7cb342",
-  C: "#f9a825",
-  D: "#fb8c00",
-  E: "#e53935",
+  A: "#12866b",
+  B: "#12866b",
+  C: "#c08a00",
+  D: "#c8102e",
+  E: "#96061f",
 };
+
+// 조치 수준 (범례·집계용)
+export const RISK_LEVELS = [
+  { key: "safe", label: "양호", sub: "자가점검 관리", color: "#12866b", grades: ["A", "B"] },
+  { key: "watch", label: "주의", sub: "보수 계획 권장", color: "#c08a00", grades: ["C"] },
+  { key: "danger", label: "위험", sub: "정밀진단 필요", color: "#c8102e", grades: ["D", "E"] },
+];

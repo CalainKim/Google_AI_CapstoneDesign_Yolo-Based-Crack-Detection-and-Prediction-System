@@ -1737,3 +1737,76 @@ h4 .src-tag {
   font-family: inherit;
   font-size: 13px;
 }
+
+/* ---- 차트 ---- */
+.chart-sub { margin: -8px 0 14px; }
+
+/* 스택 세그먼트 바 */
+.segbar-wrap { display: flex; flex-direction: column; gap: 14px; }
+.segbar {
+  display: flex;
+  gap: 2px;                 /* 세그먼트 사이 표면 간격 */
+  height: 34px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.segbar-part {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 3px;
+  transition: filter 0.15s;
+}
+.segbar-part:first-child { border-radius: 8px 0 0 8px; }
+.segbar-part:last-child { border-radius: 0 8px 8px 0; }
+.segbar-part:hover { filter: brightness(1.08); }
+.segbar-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+.segbar-legend li { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.segbar-legend i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.sl-label { color: var(--muted); }
+.segbar-legend b { font-variant-numeric: tabular-nums; }
+.sl-sub { font-size: 12px; }
+
+/* 가로 막대 목록 */
+.barlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 13px; }
+.barlist li { display: flex; flex-direction: column; gap: 5px; }
+.bl-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.bl-label { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.bl-label em {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--blue-soft);
+  color: var(--accent-dark);
+}
+.bl-value { font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.bl-track { height: 8px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+.bl-fill { height: 100%; border-radius: 999px; transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+.bl-note { font-size: 12px; }
+.barlist li.emph .bl-label { font-weight: 700; }
+
+/* 단계 진행 */
+.stageflow { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.sf-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; }
+.sf-label { color: var(--muted); }
+.sf-top b { font-variant-numeric: tabular-nums; }
+.sf-track { height: 10px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+.sf-fill { height: 100%; border-radius: 999px; transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bl-fill, .sf-fill { transition: none; }
+}
