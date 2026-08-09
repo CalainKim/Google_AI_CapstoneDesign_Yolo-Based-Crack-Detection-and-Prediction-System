@@ -1503,3 +1503,89 @@ h4 .src-tag {
   .part-row { grid-template-columns: auto auto; row-gap: 4px; }
   .pr-note { grid-column: 1 / -1; }
 }
+
+/* ---- 촬영 모드 전환 ---- */
+.mode-switch {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 4px;
+  margin: 16px 0 6px;
+}
+.mode-switch button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.mode-switch button.on {
+  background: var(--card);
+  color: var(--accent-dark);
+  box-shadow: 0 1px 3px rgba(0, 23, 51, 0.08);
+}
+.mode-hint {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* 촬영 완료 부위 표시 */
+.part-chip.shot:not(.on) {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+  background: var(--blue-soft);
+}
+.chip-check {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: currentColor;
+  position: relative;
+  flex: none;
+}
+.chip-check::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 3px;
+  height: 6px;
+  border: solid var(--card);
+  border-width: 0 1.8px 1.8px 0;
+  transform: rotate(45deg);
+}
+
+/* 연속 촬영 진행 상황 */
+.series-progress {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.sp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.sp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.sp-list li { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+.sp-part { font-weight: 600; }
+.finish-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-size: 14.5px;
+}
