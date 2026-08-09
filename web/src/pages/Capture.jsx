@@ -5,11 +5,13 @@ import {
   uploadInspection,
   imageUrl,
   createFacility,
+  getParts,
 } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
 import SummaryCard from "../components/SummaryCard.jsx";
 import Lightbox from "../components/Lightbox.jsx";
 import { DEFECT_KO, shareInspection } from "../lib/inspection.js";
+import { enqueue } from "../lib/offlineQueue.js";
 
 export default function Capture() {
   const [facilities, setFacilities] = useState([]);
@@ -46,8 +48,13 @@ export default function Capture() {
     }
   }
 
+  const [parts, setParts] = useState([]);
+  const [part, setPart] = useState("외벽");
+  const [queuedMsg, setQueuedMsg] = useState("");
+
   useEffect(() => {
     getFacilities().then(setFacilities).catch(() => {});
+    getParts().then(setParts).catch(() => {});
   }, []);
 
   async function onAddFacility(e) {
@@ -73,8 +80,23 @@ export default function Capture() {
     if (!file) return;
     setLoading(true);
     setError(null);
+    // 오프라인이면 대기열에 저장했다가 연결 후 자동 전송
+    if (!navigator.onLine) {
+      try {
+        await enqueue({ file, facilityId: facilityId || null, part });
+        window.dispatchEvent(new Event("ansim:queued"));
+        setQueuedMsg("오프라인 상태입니다. 촬영을 저장했고 연결되면 자동으로 분석합니다.");
+        setFile(null);
+        setPreview(null);
+      } catch {
+        setError("촬영을 저장하지 못했습니다.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     try {
-      const res = await uploadInspection(file, facilityId || null);
+      const res = await uploadInspection(file, facilityId || null, part);
       setResult(res);
     } catch (e) {
       setError(e.message);
@@ -105,6 +127,31 @@ export default function Capture() {
             ))}
           </select>
         </label>
+
+        <div className="field">
+          <span>촬영 부위</span>
+          <div className="part-picker">
+            {parts.map((p) => (
+              <button
+                key={p.name}
+                type="button"
+                className={`part-chip${part === p.name ? " on" : ""}${
+                  p.structural ? " structural" : ""
+                }`}
+                onClick={() => setPart(p.name)}
+                title={p.note}
+              >
+                {p.name}
+                {p.structural && <em>주요</em>}
+              </button>
+            ))}
+          </div>
+          <p className="part-hint">
+            {parts.find((p) => p.name === part)?.structural
+              ? "주요부재입니다. 손상 시 건물 전체 안전에 영향을 줍니다."
+              : "비구조 부위입니다. 구조 안전과는 구분해 평가합니다."}
+          </p>
+        </div>
 
         <details className="add-facility no-print">
           <summary>새 시설물 등록</summary>
@@ -163,6 +210,7 @@ export default function Capture() {
         </button>
 
         {error && <p className="error">{error}</p>}
+        {queuedMsg && <p className="queued-msg">{queuedMsg}</p>}
       </div>
 
       {loading && (

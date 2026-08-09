@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getHealth } from "./api";
 import { isOnboarded } from "./lib/settings.js";
+import { listQueue, flushQueue } from "./lib/offlineQueue.js";
 
 function IconHome() {
   return (
@@ -58,6 +59,32 @@ export default function App() {
       .catch(() => setMock("error"));
   }, []);
 
+  // 오프라인 상태 · 미전송 촬영 관리
+  const [online, setOnline] = useState(navigator.onLine);
+  const [pending, setPending] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => listQueue().then((q) => setPending(q.length)).catch(() => {});
+    refresh();
+    const onOnline = async () => {
+      setOnline(true);
+      const sent = await flushQueue();
+      if (sent) refresh();
+      else refresh();
+    };
+    const onOffline = () => setOnline(false);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    window.addEventListener("ansim:queued", refresh);
+    const t = setInterval(refresh, 5000);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+      window.removeEventListener("ansim:queued", refresh);
+      clearInterval(t);
+    };
+  }, []);
+
   return (
     <div className="app">
       <header className="topbar">
@@ -81,6 +108,15 @@ export default function App() {
           {mock === false && <span className="badge ok">AI 연결됨</span>}
         </div>
       </header>
+      {(!online || pending > 0) && (
+        <div className={`net-banner${online ? " syncing" : ""}`}>
+          {online
+            ? `미전송 촬영 ${pending}건을 전송하고 있습니다.`
+            : `오프라인 상태입니다. 촬영한 사진은 저장해 두었다가 연결되면 자동 전송합니다.${
+                pending ? ` (대기 ${pending}건)` : ""
+              }`}
+        </div>
+      )}
       <main className="content">
         <Outlet />
       </main>

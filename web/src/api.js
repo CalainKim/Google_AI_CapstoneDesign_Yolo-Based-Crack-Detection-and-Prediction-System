@@ -51,15 +51,27 @@ export async function getInspection(id) {
   return r.json();
 }
 
-export async function uploadInspection(file, facilityId) {
+export async function uploadInspection(file, facilityId, part) {
   const form = new FormData();
   form.append("image", file);
   if (facilityId) form.append("facility_id", facilityId);
+  if (part) form.append("part", part);
   const r = await fetch(`${API_BASE}/api/inspections`, {
     method: "POST",
     body: form,
   });
   if (!r.ok) throw new Error("분석 요청 실패");
+  return r.json();
+}
+
+export async function getParts() {
+  const r = await fetch(`${API_BASE}/api/parts`);
+  return r.json();
+}
+
+export async function getFacilityAssessment(facilityId) {
+  const r = await fetch(`${API_BASE}/api/facilities/${facilityId}/assessment`);
+  if (!r.ok) throw new Error("종합 판정을 불러오지 못했습니다");
   return r.json();
 }
 

@@ -11,6 +11,13 @@ import Report from "./pages/Report.jsx";
 import Onboarding from "./pages/Onboarding.jsx";
 import "./styles.css";
 
+// 오프라인에서도 앱 화면이 뜨도록 서비스워커 등록
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>

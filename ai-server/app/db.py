@@ -36,15 +36,20 @@ def init_db():
                 detections_json TEXT,
                 risk_json TEXT,
                 is_mock INTEGER DEFAULT 0,
-                status TEXT DEFAULT '접수'
+                status TEXT DEFAULT '접수',
+                part TEXT DEFAULT '미지정'
             );
             """
         )
-        # 기존 DB 마이그레이션: status 컬럼이 없으면 추가
-        try:
-            c.execute("ALTER TABLE inspection ADD COLUMN status TEXT DEFAULT '접수'")
-        except sqlite3.OperationalError:
-            pass  # 이미 있음
+        # 기존 DB 마이그레이션: 없는 컬럼만 추가
+        for ddl in (
+            "ALTER TABLE inspection ADD COLUMN status TEXT DEFAULT '접수'",
+            "ALTER TABLE inspection ADD COLUMN part TEXT DEFAULT '미지정'",
+        ):
+            try:
+                c.execute(ddl)
+            except sqlite3.OperationalError:
+                pass  # 이미 있음
     _seed_facilities()
 
 
@@ -120,13 +125,14 @@ def create_inspection(
     detections: List[Dict[str, Any]],
     risk: Dict[str, Any],
     is_mock: bool,
+    part: str = "미지정",
 ) -> int:
     with _conn() as c:
         cur = c.execute(
             """INSERT INTO inspection
                (facility_id,image_path,result_image_path,created_at,
-                risk_grade,risk_score,defect_count,detections_json,risk_json,is_mock)
-               VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                risk_grade,risk_score,defect_count,detections_json,risk_json,is_mock,part)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 facility_id,
                 image_path,
@@ -138,6 +144,7 @@ def create_inspection(
                 json.dumps(detections, ensure_ascii=False),
                 json.dumps(risk, ensure_ascii=False),
                 1 if is_mock else 0,
+                part,
             ),
         )
         return cur.lastrowid

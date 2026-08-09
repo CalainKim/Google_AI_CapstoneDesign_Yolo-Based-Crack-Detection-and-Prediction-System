@@ -26,15 +26,26 @@ until curl -s "http://127.0.0.1:8000/api/health" >/dev/null; do sleep 1; done
 echo "   health: $(curl -s http://127.0.0.1:8000/api/health)"
 
 if [[ "${1:-}" == "--reseed" ]]; then
-  echo "== 데모 스토리 시드 (9건) =="
+  echo "== 데모 스토리 시드 (부위 포함 9건) =="
   D="$ROOT/demo_samples"
-  up() { curl -s -X POST http://127.0.0.1:8000/api/inspections -F "image=@$1;type=image/jpeg" -F "facility_id=$2" >/dev/null; }
-  up "$D/불량/불량_1_conf93.jpg" 1; up "$D/불량/불량_2_conf89.jpg" 1
-  up "$D/보통/보통_1_conf91.jpg" 2; up "$D/보통/보통_2_conf99.jpg" 2
-  up "$D/우수/우수_1_conf97.jpg" 3; up "$D/우수/우수_3_conf99.jpg" 3
-  up "$D/우수/우수_2_conf82.jpg" 4; up "$D/보통/보통_3_conf98.jpg" 4
-  up "$D/불량/불량_3_conf90.jpg" 5
-  echo "   stats: $(curl -s http://127.0.0.1:8000/api/stats | head -c 200)"
+  # up <사진> <시설id> <부위>
+  up() { curl -s -X POST http://127.0.0.1:8000/api/inspections \
+           -F "image=@$1;type=image/jpeg" -F "facility_id=$2" -F "part=$3" >/dev/null; }
+  # 행복상가: 기둥(주요부재) 손상 → 건물 D, 정밀진단 대상 (시연 주인공)
+  up "$D/불량/불량_1_conf93.jpg" 1 "기둥"
+  up "$D/불량/불량_2_conf89.jpg" 1 "외벽"
+  # 은빛경로당: 보통 등급 (외벽·보)
+  up "$D/보통/보통_1_conf91.jpg" 2 "외벽"
+  up "$D/보통/보통_2_conf99.jpg" 2 "보"
+  # 한울다세대: 양호
+  up "$D/우수/우수_1_conf97.jpg" 3 "외벽"
+  up "$D/우수/우수_3_conf99.jpg" 3 "기둥"
+  # 옹벽
+  up "$D/우수/우수_2_conf82.jpg" 4 "옹벽"
+  up "$D/보통/보통_3_conf98.jpg" 4 "옹벽"
+  # 지하차도: 슬래브 손상
+  up "$D/불량/불량_3_conf90.jpg" 5 "슬래브"
+  echo "   stats: $(curl -s http://127.0.0.1:8000/api/stats | head -c 160)"
 fi
 
 echo "== 웹 시작 (API → http://$IP:8000) =="
