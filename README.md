@@ -13,11 +13,11 @@
 - `docs/`      : 설계 문서, 아키텍처
 
 ## 진행 단계
-- [ ] 1. AI-Hub 데이터 일부로 Colab 학습  ← notebooks/02_AIHub_데이터_학습.ipynb 준비됨
-- [ ] 2. best.pt를 ai-server/models/에 연결
-- [x] 3. AI 추론 서버 + 위험도 엔진 (mock 모드로 동작 확인 완료)
-- [x] 4. 웹 대시보드 + 현장 촬영 화면 (연동 확인 완료)
-- [ ] 5. AI-Hub 전체 데이터로 모델 고도화 (data-tools/aihub_to_yolo.py 준비됨)
+-  1. AI-Hub 데이터 일부로 Colab 학습  ← notebooks/02_AIHub_데이터_학습.ipynb 준비됨
+-  2. best.pt를 ai-server/models/에 연결
+-  3. AI 추론 서버 + 위험도 엔진 (mock 모드로 동작 확인 완료)
+-  4. 웹 대시보드 + 현장 촬영 화면 (연동 확인 완료)
+-  5. AI-Hub 전체 데이터로 모델 고도화 (data-tools/aihub_to_yolo.py 준비됨)
 
 > 시스템 뼈대(서버·위험도·웹·모바일촬영)는 완성되어 작동 중. 남은 핵심은 Colab 학습 → best.pt 연결.
 
