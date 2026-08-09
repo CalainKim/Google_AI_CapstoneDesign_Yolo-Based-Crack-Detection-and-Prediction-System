@@ -31,3 +31,6 @@ demo_samples/
 
 # 내부 문서 (전략·자문·보고서 — 저장소 비공개)
 docs/
+
+# 보고서용 이미지 자산
+report_assets/
