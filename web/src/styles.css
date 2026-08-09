@@ -899,3 +899,119 @@ h4 .src-tag {
 }
 .result-actions .btn-detail { margin-top: 0; }
 .share-msg { font-size: 12px; color: var(--green); font-weight: 600; }
+
+/* ---- 비용 절감 히어로 (핵심 스토리) ---- */
+.cost-impact {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 28px;
+  background: linear-gradient(135deg, #1b64da 0%, #3182f6 100%);
+  color: #fff;
+  border-radius: 20px;
+  padding: 28px 30px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 24px rgba(49, 130, 246, 0.25);
+}
+.ci-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.ci-label {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.ci-value {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.ci-sub {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+.ci-compare {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+.ci-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  opacity: 0.95;
+}
+.ci-row b {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+.ci-before {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+.ci-after {
+  color: #fff;
+}
+.ci-bar {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ci-bar-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 999px;
+  transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ci-note {
+  margin: 2px 0 0;
+  font-size: 11px;
+  opacity: 0.7;
+}
+@media (max-width: 900px) {
+  .cost-impact {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 22px;
+  }
+  .ci-value { font-size: 34px; }
+}
+
+/* ---- 결과 등장 연출 ---- */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.result-card,
+.summary-card,
+.cost-impact {
+  animation: riseIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.summary-card { animation-delay: 0.1s; }
+@media (prefers-reduced-motion: reduce) {
+  .result-card, .summary-card, .cost-impact { animation: none; }
+  .ci-bar-fill { transition: none; }
+}
+
+/* 등급별 판정 플래그 강조 (위험할수록 시선 집중) */
+.pro-flag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pro-flag::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}

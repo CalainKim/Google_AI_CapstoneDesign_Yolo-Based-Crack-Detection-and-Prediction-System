@@ -14,6 +14,7 @@ import {
 import { getStats, getFacilities, getInspections, GRADE_COLORS } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
 import FacilityMap from "../components/FacilityMap.jsx";
+import CostImpact from "../components/CostImpact.jsx";
 
 const GRADE_ORDER = ["A", "B", "C", "D", "E"];
 // 보수 우선순위 정렬용 위험도 순위
@@ -73,6 +74,11 @@ export default function Dashboard() {
           미조치 정밀진단 대상이 <b>{unresolved}건</b> 있습니다. 우선 조치가 필요합니다.
         </div>
       )}
+      <CostImpact
+        total={stats?.total_inspections}
+        needsPro={triage.needs_pro_inspection}
+      />
+
       <section className="cards">
         <div className="card stat">
           <span className="stat-label">총 점검 건수</span>

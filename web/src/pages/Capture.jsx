@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   getFacilities,
@@ -23,6 +23,14 @@ export default function Capture() {
   const [newType, setNewType] = useState("상가건물");
   const [zoom, setZoom] = useState(null);
   const [shareMsg, setShareMsg] = useState("");
+  const resultRef = useRef(null);
+
+  // 분석이 끝나면 결과로 자동 스크롤 (모바일에서 결과가 화면 밖에 생기는 문제 방지)
+  useEffect(() => {
+    if (result && resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [result]);
 
   async function onShare() {
     const r = await shareInspection({
@@ -166,7 +174,7 @@ export default function Capture() {
       )}
 
       {result && !loading && (
-        <div className="card result-card">
+        <div className="card result-card" ref={resultRef}>
           <div className="result-head">
             <h3>분석 결과</h3>
             <GradeBadge
