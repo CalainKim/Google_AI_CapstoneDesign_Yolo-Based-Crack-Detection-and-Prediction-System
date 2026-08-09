@@ -8,7 +8,8 @@ import {
 } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
 import SummaryCard from "../components/SummaryCard.jsx";
-import { DEFECT_KO } from "../lib/inspection.js";
+import Lightbox from "../components/Lightbox.jsx";
+import { DEFECT_KO, shareInspection } from "../lib/inspection.js";
 
 export default function Capture() {
   const [facilities, setFacilities] = useState([]);
@@ -20,6 +21,22 @@ export default function Capture() {
   const [error, setError] = useState(null);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("상가건물");
+  const [zoom, setZoom] = useState(null);
+  const [shareMsg, setShareMsg] = useState("");
+
+  async function onShare() {
+    const r = await shareInspection({
+      id: result.id,
+      facilityName: facilities.find((f) => String(f.id) === String(facilityId))?.name,
+      grade: result.risk.risk_grade,
+      gradeLabel: result.risk.grade_label,
+      needsPro: result.risk.needs_pro_inspection,
+    });
+    if (r === "copied") {
+      setShareMsg("링크를 복사했어요");
+      setTimeout(() => setShareMsg(""), 2000);
+    }
+  }
 
   useEffect(() => {
     getFacilities().then(setFacilities).catch(() => {});
@@ -140,7 +157,15 @@ export default function Capture() {
         {error && <p className="error">{error}</p>}
       </div>
 
-      {result && (
+      {loading && (
+        <div className="card analyzing">
+          <div className="spinner" />
+          <p className="analyzing-title">AI가 분석하고 있어요</p>
+          <p className="muted">결함 탐지 → 등급 판정 → 종합 소견 생성</p>
+        </div>
+      )}
+
+      {result && !loading && (
         <div className="card result-card">
           <div className="result-head">
             <h3>분석 결과</h3>
@@ -155,10 +180,12 @@ export default function Capture() {
             </p>
           )}
           <img
-            className="result-img"
+            className="result-img zoomable"
             src={imageUrl(result.id)}
             alt="탐지 결과"
+            onClick={() => setZoom(imageUrl(result.id))}
           />
+          <p className="muted img-cap">사진을 탭하면 크게 볼 수 있어요.</p>
 
           {result.risk.needs_pro_inspection ? (
             <div className="pro-flag">
@@ -186,11 +213,18 @@ export default function Capture() {
             ))}
             {!result.detections.length && <li>탐지된 결함 없음</li>}
           </ul>
-          <Link className="link btn-detail" to={`/inspection/${result.id}`}>
-            상세 분석 보기 →
-          </Link>
+          <div className="result-actions">
+            <Link className="link btn-detail" to={`/inspection/${result.id}`}>
+              상세 분석 보기 →
+            </Link>
+            <button className="action-btn" onClick={onShare}>
+              결과 공유
+            </button>
+            {shareMsg && <span className="share-msg">{shareMsg}</span>}
+          </div>
         </div>
       )}
+      <Lightbox src={zoom} onClose={() => setZoom(null)} />
     </div>
   );
 }

@@ -61,8 +61,18 @@ export default function Dashboard() {
 
   const triage = stats?.triage || {};
 
+  // 미조치 정밀진단 대상 (D·E인데 조치 완료가 아닌 것) — 관리자 경고
+  const unresolved = inspections.filter(
+    (i) => NEEDS_PRO.has(i.risk_grade) && (i.status || "접수") !== "조치 완료"
+  ).length;
+
   return (
     <div className="dashboard">
+      {unresolved > 0 && (
+        <div className="alert-banner">
+          미조치 정밀진단 대상이 <b>{unresolved}건</b> 있습니다. 우선 조치가 필요합니다.
+        </div>
+      )}
       <section className="cards">
         <div className="card stat">
           <span className="stat-label">총 점검 건수</span>
@@ -174,7 +184,7 @@ export default function Dashboard() {
                 <th>#</th>
                 <th>시설물</th>
                 <th>등급</th>
-                <th>결함</th>
+                <th>상태</th>
                 <th>일시</th>
               </tr>
             </thead>
@@ -194,7 +204,15 @@ export default function Dashboard() {
                   <td>
                     <GradeBadge grade={i.risk_grade} score={i.risk_score} />
                   </td>
-                  <td>{i.defect_count}</td>
+                  <td>
+                    <span
+                      className={`status-chip sm ${
+                        { "접수": "s0", "진단 의뢰": "s1", "조치 완료": "s2" }[i.status || "접수"]
+                      }`}
+                    >
+                      {i.status || "접수"}
+                    </span>
+                  </td>
                   <td className="muted">{(i.created_at || "").slice(5, 16)}</td>
                 </tr>
               ))}

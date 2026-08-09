@@ -70,3 +70,22 @@ export function buildSummary(risk) {
 
   return lines;
 }
+
+// 결과 공유: 모바일은 시스템 공유 시트, 미지원 환경은 클립보드 복사
+// 반환: 'shared' | 'copied' | 'cancel'
+export async function shareInspection({ id, facilityName, grade, gradeLabel, needsPro }) {
+  const text =
+    `[안심점검] ${facilityName || "미지정 시설"} · 안전등급 ${grade}(${gradeLabel}) · ` +
+    (needsPro ? "전문 정밀안전진단 필요" : "자가점검 관리 대상");
+  const url = `${window.location.origin}/inspection/${id}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "안심점검 결과", text, url });
+      return "shared";
+    } catch {
+      return "cancel";
+    }
+  }
+  await navigator.clipboard.writeText(`${text}\n${url}`);
+  return "copied";
+}

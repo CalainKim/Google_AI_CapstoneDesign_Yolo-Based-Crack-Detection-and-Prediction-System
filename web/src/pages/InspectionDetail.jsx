@@ -3,7 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { getInspection, imageUrl, setInspectionStatus } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
 import SummaryCard from "../components/SummaryCard.jsx";
-import { DEFECT_KO, GRADE_MEANING, GROUP_ORDER } from "../lib/inspection.js";
+import Lightbox from "../components/Lightbox.jsx";
+import { DEFECT_KO, GRADE_MEANING, GROUP_ORDER, shareInspection } from "../lib/inspection.js";
 
 // 탐지 기반 참고 지표 라벨
 const FACTOR_LABELS = {
@@ -17,6 +18,22 @@ export default function InspectionDetail() {
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [zoom, setZoom] = useState(null);
+  const [shareMsg, setShareMsg] = useState("");
+
+  async function onShare() {
+    const r = await shareInspection({
+      id: data.id,
+      facilityName: data.facility_name,
+      grade: data.risk_grade,
+      gradeLabel: (data.risk || {}).grade_label,
+      needsPro: (data.risk || {}).needs_pro_inspection,
+    });
+    if (r === "copied") {
+      setShareMsg("링크를 복사했어요");
+      setTimeout(() => setShareMsg(""), 2000);
+    }
+  }
 
   useEffect(() => {
     getInspection(id).then(setData).catch((e) => setError(e.message));
@@ -60,14 +77,23 @@ export default function InspectionDetail() {
           <button className="action-btn" onClick={() => window.print()}>
             보고서 인쇄
           </button>
+          <button className="action-btn" onClick={onShare}>
+            공유
+          </button>
+          {shareMsg && <span className="share-msg">{shareMsg}</span>}
         </div>
       </div>
       <div className="grid-2">
         <div className="card">
           <h3>탐지 결과 이미지</h3>
-          <img className="result-img" src={imageUrl(data.id)} alt="결과" />
+          <img
+            className="result-img zoomable"
+            src={imageUrl(data.id)}
+            alt="결과"
+            onClick={() => setZoom(imageUrl(data.id))}
+          />
           <p className="muted img-cap">
-            붉게 표시된 영역이 AI가 탐지한 결함 위치입니다.
+            붉게 표시된 영역이 AI가 탐지한 결함 위치입니다. 사진을 탭하면 크게 볼 수 있어요.
           </p>
         </div>
 
@@ -195,6 +221,7 @@ export default function InspectionDetail() {
           </details>
         </div>
       </div>
+      <Lightbox src={zoom} onClose={() => setZoom(null)} />
     </div>
   );
 }
