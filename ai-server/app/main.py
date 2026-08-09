@@ -10,6 +10,7 @@ from typing import Optional
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 from . import config, db, detector, risk_engine, grade_classifier
 
@@ -41,6 +42,36 @@ def health():
 @app.get("/api/facilities")
 def facilities():
     return db.list_facilities()
+
+
+class FacilityIn(BaseModel):
+    name: str
+    type: str = "건축물"
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+
+
+@app.post("/api/facilities")
+def create_facility(body: FacilityIn):
+    """시설물 등록 (관리 대상 건물 추가)."""
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(400, "시설물 이름을 입력하세요.")
+    return db.create_facility(name, body.type.strip() or "건축물", body.lat, body.lng)
+
+
+class StatusIn(BaseModel):
+    status: str
+
+
+@app.patch("/api/inspections/{inspection_id}/status")
+def update_status(inspection_id: int, body: StatusIn):
+    """조치 상태 변경 (접수 → 진단 의뢰 → 조치 완료)."""
+    if body.status not in db.STATUSES:
+        raise HTTPException(400, f"허용 상태: {db.STATUSES}")
+    if not db.update_inspection_status(inspection_id, body.status):
+        raise HTTPException(404, "점검 기록을 찾을 수 없습니다.")
+    return {"id": inspection_id, "status": body.status}
 
 
 @app.post("/api/inspections")
@@ -89,8 +120,8 @@ async def create_inspection(
 
 
 @app.get("/api/inspections")
-def inspections(grade: Optional[str] = None):
-    return db.list_inspections(grade=grade)
+def inspections(grade: Optional[str] = None, facility_id: Optional[int] = None):
+    return db.list_inspections(grade=grade, facility_id=facility_id)
 
 
 @app.get("/api/inspections/{inspection_id}")

@@ -7,7 +7,7 @@ export default function SummaryCard({ risk }) {
   const g = (risk?.risk_grade || "").toLowerCase();
   return (
     <div className={`summary-card grade-${g}`}>
-      <div className="sc-title">🧠 AI 종합 소견</div>
+      <div className="sc-title">AI 종합 소견</div>
       <ul className="sc-lines">
         {lines.map((line, i) => (
           <li key={i}>{line}</li>

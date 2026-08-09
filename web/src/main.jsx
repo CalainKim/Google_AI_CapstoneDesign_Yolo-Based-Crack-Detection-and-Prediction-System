@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Capture from "./pages/Capture.jsx";
 import InspectionDetail from "./pages/InspectionDetail.jsx";
+import FacilityDetail from "./pages/FacilityDetail.jsx";
 import "./styles.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -15,6 +16,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route index element={<Dashboard />} />
           <Route path="capture" element={<Capture />} />
           <Route path="inspection/:id" element={<InspectionDetail />} />
+          <Route path="facility/:id" element={<FacilityDetail />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Route>
       </Routes>

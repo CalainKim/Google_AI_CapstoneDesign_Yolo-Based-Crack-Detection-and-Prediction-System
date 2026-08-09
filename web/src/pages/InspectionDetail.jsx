@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getInspection, imageUrl } from "../api";
+import { getInspection, imageUrl, setInspectionStatus } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
 import SummaryCard from "../components/SummaryCard.jsx";
 import { DEFECT_KO, GRADE_MEANING, GROUP_ORDER } from "../lib/inspection.js";
@@ -22,9 +22,15 @@ export default function InspectionDetail() {
     getInspection(id).then(setData).catch((e) => setError(e.message));
   }, [id]);
 
-  if (error) return <p className="error">⚠️ {error}</p>;
+  async function changeStatus(status) {
+    await setInspectionStatus(data.id, status);
+    setData({ ...data, status });
+  }
+
+  if (error) return <p className="error">{error}</p>;
   if (!data) return <p className="muted">불러오는 중...</p>;
 
+  const status = data.status || "접수";
   const risk = data.risk || {};
   const factors = risk.factors || {};
   const probs = risk.grade_probs || {};
@@ -33,15 +39,35 @@ export default function InspectionDetail() {
 
   return (
     <div className="detail">
-      <Link className="link" to="/">
-        ← 대시보드로
-      </Link>
+      <div className="detail-toolbar no-print">
+        <Link className="link" to="/">
+          ← 대시보드로
+        </Link>
+        <div className="toolbar-actions">
+          <span className={`status-chip ${{ "접수": "s0", "진단 의뢰": "s1", "조치 완료": "s2" }[status]}`}>
+            {status}
+          </span>
+          {status === "접수" && risk.needs_pro_inspection && (
+            <button className="action-btn warn" onClick={() => changeStatus("진단 의뢰")}>
+              정밀진단 의뢰
+            </button>
+          )}
+          {status !== "조치 완료" && (
+            <button className="action-btn ok" onClick={() => changeStatus("조치 완료")}>
+              조치 완료 처리
+            </button>
+          )}
+          <button className="action-btn" onClick={() => window.print()}>
+            보고서 인쇄
+          </button>
+        </div>
+      </div>
       <div className="grid-2">
         <div className="card">
           <h3>탐지 결과 이미지</h3>
           <img className="result-img" src={imageUrl(data.id)} alt="결과" />
           <p className="muted img-cap">
-            🔴 표시된 영역이 AI가 탐지한 결함 위치입니다.
+            붉게 표시된 영역이 AI가 탐지한 결함 위치입니다.
           </p>
         </div>
 
@@ -52,7 +78,7 @@ export default function InspectionDetail() {
           </div>
           <p className="muted">
             {data.facility_type} · {data.created_at}
-            {data.is_mock ? " · ⚠️ mock" : " · AI 추론"}
+            {data.is_mock ? " · mock" : " · AI 추론"}
           </p>
 
           {/* AI 종합 소견 */}
@@ -61,20 +87,20 @@ export default function InspectionDetail() {
           {/* 판정 결과 */}
           {risk.needs_pro_inspection ? (
             <div className="pro-flag">
-              🔬 전문 정밀안전진단 필요
+              전문 정밀안전진단 필요
               {risk.urgency ? (
                 <span className="urgency now" style={{ marginLeft: 8 }}>{risk.urgency}</span>
               ) : null}
             </div>
           ) : (
             <div className="pro-flag ok">
-              ✅ 자가점검 관리 대상 (정밀진단 불필요)
+              자가점검 관리 대상 (정밀진단 불필요)
               {risk.urgency ? (
                 <span className="urgency later" style={{ marginLeft: 8 }}>{risk.urgency}</span>
               ) : null}
             </div>
           )}
-          <p className="reco">💡 {risk.recommendation}</p>
+          <p className="reco">{risk.recommendation}</p>
 
           {/* ① AI 등급 판정 근거 (분류 모델) */}
           <h4>

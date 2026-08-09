@@ -4,6 +4,7 @@ import {
   getFacilities,
   uploadInspection,
   imageUrl,
+  createFacility,
 } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
 import SummaryCard from "../components/SummaryCard.jsx";
@@ -17,10 +18,22 @@ export default function Capture() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [newName, setNewName] = useState("");
+  const [newType, setNewType] = useState("상가건물");
 
   useEffect(() => {
     getFacilities().then(setFacilities).catch(() => {});
   }, []);
+
+  async function onAddFacility(e) {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    const f = await createFacility({ name: newName.trim(), type: newType });
+    const list = await getFacilities();
+    setFacilities(list);
+    setFacilityId(String(f.id)); // 방금 등록한 시설을 바로 선택
+    setNewName("");
+  }
 
   function onPick(e) {
     const f = e.target.files?.[0];
@@ -48,7 +61,7 @@ export default function Capture() {
   return (
     <div className="capture">
       <div className="card capture-card">
-        <h2>📷 현장 시설물 촬영</h2>
+        <h2>현장 시설물 촬영</h2>
         <p className="muted">
           노후 건물·외벽을 촬영하면 AI가 균열을 탐지하고 안전등급을 산정합니다.
         </p>
@@ -67,6 +80,36 @@ export default function Capture() {
             ))}
           </select>
         </label>
+
+        <details className="add-facility no-print">
+          <summary>새 시설물 등록</summary>
+          <form className="add-facility-form" onSubmit={onAddFacility}>
+            <input
+              type="text"
+              placeholder="시설물 이름 (예: OO상가 3동)"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+            <select value={newType} onChange={(e) => setNewType(e.target.value)}>
+              <option>상가건물</option>
+              <option>다세대주택</option>
+              <option>단독주택</option>
+              <option>아파트</option>
+              <option>복지시설</option>
+              <option>기타</option>
+            </select>
+            <button type="submit" className="action-btn">등록</button>
+          </form>
+        </details>
+
+        <div className="shoot-guide">
+          <b>촬영 가이드</b>
+          <ul>
+            <li>결함 부위를 화면 중앙에, 정면에서 촬영하세요.</li>
+            <li>30~50cm 거리에서 초점을 맞춰 흔들림 없이.</li>
+            <li>그늘·역광을 피하고 밝은 상태에서 촬영하세요.</li>
+          </ul>
+        </div>
 
         <label className="capture-btn">
           {/* capture=environment → 휴대폰에서 후면 카메라 바로 실행 */}
@@ -94,7 +137,7 @@ export default function Capture() {
           {loading ? "AI 분석 중..." : "AI 분석하기"}
         </button>
 
-        {error && <p className="error">⚠️ {error}</p>}
+        {error && <p className="error">{error}</p>}
       </div>
 
       {result && (
@@ -119,7 +162,7 @@ export default function Capture() {
 
           {result.risk.needs_pro_inspection ? (
             <div className="pro-flag">
-              🔬 전문 정밀안전진단 필요
+              전문 정밀안전진단 필요
               {result.risk.urgency ? (
                 <span className="urgency now" style={{ marginLeft: 8 }}>
                   {result.risk.urgency}
@@ -127,7 +170,7 @@ export default function Capture() {
               ) : null}
             </div>
           ) : (
-            <div className="pro-flag ok">✅ 자가점검 관리 대상 (정밀진단 불필요)</div>
+            <div className="pro-flag ok">자가점검 관리 대상 (정밀진단 불필요)</div>
           )}
 
           <SummaryCard risk={result.risk} />

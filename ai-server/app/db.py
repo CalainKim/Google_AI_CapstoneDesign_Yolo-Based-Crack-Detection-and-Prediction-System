@@ -35,10 +35,16 @@ def init_db():
                 defect_count INTEGER,
                 detections_json TEXT,
                 risk_json TEXT,
-                is_mock INTEGER DEFAULT 0
+                is_mock INTEGER DEFAULT 0,
+                status TEXT DEFAULT '접수'
             );
             """
         )
+        # 기존 DB 마이그레이션: status 컬럼이 없으면 추가
+        try:
+            c.execute("ALTER TABLE inspection ADD COLUMN status TEXT DEFAULT '접수'")
+        except sqlite3.OperationalError:
+            pass  # 이미 있음
     _seed_facilities()
 
 
@@ -79,6 +85,34 @@ def list_facilities() -> List[Dict[str, Any]]:
         return facilities
 
 
+def create_facility(name: str, type_: str, lat: Optional[float], lng: Optional[float]) -> Dict[str, Any]:
+    """시설물 등록. 좌표 미지정 시 서울 도심 근처로 배치(데모 지도용)."""
+    import random
+    if lat is None or lng is None:
+        lat = 37.5665 + random.uniform(-0.01, 0.01)
+        lng = 126.9780 + random.uniform(-0.012, 0.012)
+    with _conn() as c:
+        cur = c.execute(
+            "INSERT INTO facility(name,type,lat,lng) VALUES (?,?,?,?)",
+            (name, type_, lat, lng),
+        )
+        return {"id": cur.lastrowid, "name": name, "type": type_, "lat": lat, "lng": lng}
+
+
+# 조치 상태 워크플로우 (현업 점검 업무 흐름)
+STATUSES = ["접수", "진단 의뢰", "조치 완료"]
+
+
+def update_inspection_status(inspection_id: int, status: str) -> bool:
+    if status not in STATUSES:
+        return False
+    with _conn() as c:
+        cur = c.execute(
+            "UPDATE inspection SET status=? WHERE id=?", (status, inspection_id)
+        )
+        return cur.rowcount > 0
+
+
 def create_inspection(
     facility_id: Optional[int],
     image_path: str,
@@ -116,19 +150,26 @@ def _row_to_inspection(r: sqlite3.Row) -> Dict[str, Any]:
     return d
 
 
-def list_inspections(grade: Optional[str] = None) -> List[Dict[str, Any]]:
+def list_inspections(
+    grade: Optional[str] = None, facility_id: Optional[int] = None
+) -> List[Dict[str, Any]]:
     with _conn() as c:
         q = (
             "SELECT i.*, f.name AS facility_name, f.type AS facility_type, "
             "f.lat AS lat, f.lng AS lng "
             "FROM inspection i LEFT JOIN facility f ON i.facility_id=f.id "
         )
-        params: tuple = ()
+        conds, params = [], []
         if grade:
-            q += "WHERE i.risk_grade=? "
-            params = (grade,)
+            conds.append("i.risk_grade=?")
+            params.append(grade)
+        if facility_id is not None:
+            conds.append("i.facility_id=?")
+            params.append(facility_id)
+        if conds:
+            q += "WHERE " + " AND ".join(conds) + " "
         q += "ORDER BY i.id DESC"
-        rows = c.execute(q, params).fetchall()
+        rows = c.execute(q, tuple(params)).fetchall()
         return [_row_to_inspection(r) for r in rows]
 
 

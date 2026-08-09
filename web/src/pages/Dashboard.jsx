@@ -140,7 +140,7 @@ export default function Dashboard() {
 
       <section className="grid-2">
         <div className="card">
-          <h3>🚨 정밀진단 우선 대상 (D·E)</h3>
+          <h3>정밀진단 우선 대상 (D·E)</h3>
           {priority.length ? (
             <ol className="priority-list">
               {priority.map((i) => {
@@ -184,7 +184,13 @@ export default function Dashboard() {
                   <td>
                     <Link to={`/inspection/${i.id}`}>{i.id}</Link>
                   </td>
-                  <td>{i.facility_name || "-"}</td>
+                  <td>
+                    {i.facility_id ? (
+                      <Link to={`/facility/${i.facility_id}`}>{i.facility_name}</Link>
+                    ) : (
+                      i.facility_name || "-"
+                    )}
+                  </td>
                   <td>
                     <GradeBadge grade={i.risk_grade} score={i.risk_score} />
                   </td>

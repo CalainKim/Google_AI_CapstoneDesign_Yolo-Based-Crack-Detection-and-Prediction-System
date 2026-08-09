@@ -17,10 +17,31 @@ export async function getStats() {
   return r.json();
 }
 
-export async function getInspections(grade) {
+export async function getInspections(grade, facilityId) {
   const url = new URL(`${API_BASE}/api/inspections`);
   if (grade) url.searchParams.set("grade", grade);
+  if (facilityId) url.searchParams.set("facility_id", facilityId);
   const r = await fetch(url);
+  return r.json();
+}
+
+export async function createFacility({ name, type }) {
+  const r = await fetch(`${API_BASE}/api/facilities`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, type }),
+  });
+  if (!r.ok) throw new Error("시설물 등록 실패");
+  return r.json();
+}
+
+export async function setInspectionStatus(id, status) {
+  const r = await fetch(`${API_BASE}/api/inspections/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!r.ok) throw new Error("상태 변경 실패");
   return r.json();
 }
 
