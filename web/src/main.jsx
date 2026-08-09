@@ -7,6 +7,7 @@ import Capture from "./pages/Capture.jsx";
 import InspectionDetail from "./pages/InspectionDetail.jsx";
 import FacilityDetail from "./pages/FacilityDetail.jsx";
 import Settings from "./pages/Settings.jsx";
+import Report from "./pages/Report.jsx";
 import Onboarding from "./pages/Onboarding.jsx";
 import "./styles.css";
 
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route index element={<Dashboard />} />
           <Route path="capture" element={<Capture />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="report" element={<Report />} />
           <Route path="inspection/:id" element={<InspectionDetail />} />
           <Route path="facility/:id" element={<FacilityDetail />} />
           <Route path="*" element={<Navigate to="/" />} />

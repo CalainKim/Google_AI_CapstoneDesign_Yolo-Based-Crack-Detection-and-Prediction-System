@@ -74,6 +74,13 @@ export default function Dashboard() {
           미조치 정밀진단 대상이 <b>{unresolved}건</b> 있습니다. 우선 조치가 필요합니다.
         </div>
       )}
+      <div className="dash-head">
+        <h2 className="page-title">관리 대시보드</h2>
+        <Link className="action-btn primary-tone" to="/report">
+          점검 리포트 작성
+        </Link>
+      </div>
+
       <section className="cards">
         <div className="card stat">
           <span className="stat-label">총 점검 건수</span>
