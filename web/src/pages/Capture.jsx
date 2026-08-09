@@ -6,6 +6,8 @@ import {
   imageUrl,
 } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
+import SummaryCard from "../components/SummaryCard.jsx";
+import { DEFECT_KO } from "../lib/inspection.js";
 
 export default function Capture() {
   const [facilities, setFacilities] = useState([]);
@@ -114,19 +116,35 @@ export default function Capture() {
             src={imageUrl(result.id)}
             alt="탐지 결과"
           />
-          <p className="reco">💡 {result.risk.recommendation}</p>
+
+          {result.risk.needs_pro_inspection ? (
+            <div className="pro-flag">
+              🔬 전문 정밀안전진단 필요
+              {result.risk.urgency ? (
+                <span className="urgency now" style={{ marginLeft: 8 }}>
+                  {result.risk.urgency}
+                </span>
+              ) : null}
+            </div>
+          ) : (
+            <div className="pro-flag ok">✅ 자가점검 관리 대상 (정밀진단 불필요)</div>
+          )}
+
+          <SummaryCard risk={result.risk} />
+
           <h4>탐지된 결함 ({result.detections.length}개)</h4>
           <ul className="detect-list">
             {result.detections.map((d, i) => (
               <li key={i}>
-                <b>{d.label}</b> · 신뢰도 {(d.confidence * 100).toFixed(0)}%
+                <b>{DEFECT_KO[d.label] || d.label}</b> · 신뢰도{" "}
+                {(d.confidence * 100).toFixed(0)}%
                 {d.width_px ? ` · 폭 ${d.width_px}px` : ""}
               </li>
             ))}
             {!result.detections.length && <li>탐지된 결함 없음</li>}
           </ul>
-          <Link className="link" to={`/inspection/${result.id}`}>
-            상세 보기 →
+          <Link className="link btn-detail" to={`/inspection/${result.id}`}>
+            상세 분석 보기 →
           </Link>
         </div>
       )}

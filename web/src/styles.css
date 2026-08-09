@@ -366,3 +366,71 @@ button.primary:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== InspectionDetail 상세 강화 ===== */
+.img-cap { font-size: 12px; margin-top: 8px; }
+
+h4 .src-tag {
+  font-size: 11px; font-weight: 600; color: var(--accent-2);
+  background: rgba(34, 211, 238, 0.12); border: 1px solid rgba(34, 211, 238, 0.3);
+  padding: 1px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle;
+}
+
+.grade-meaning {
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 14px; margin: 4px 0 14px;
+}
+.gm-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.gm-grade { font-size: 18px; font-weight: 800; }
+.gm-grade.g-a { color: #2e9e5b; }
+.gm-grade.g-b { color: #7cb342; }
+.gm-grade.g-c { color: #f9a825; }
+.gm-grade.g-d { color: #fb8c00; }
+.gm-grade.g-e { color: #e53935; }
+.gm-conf { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gm-desc { margin: 6px 0 0; font-size: 13px; color: var(--text); opacity: 0.9; }
+
+.probs { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+.probs-label { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.prob-row {
+  display: grid; grid-template-columns: 44px 1fr 44px;
+  align-items: center; gap: 10px; font-size: 13px;
+}
+.prob-name { color: var(--muted); }
+.prob-bar { height: 12px; background: var(--panel-2); border-radius: 999px; overflow: hidden; }
+.prob-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
+.prob-fill.good { background: #2e9e5b; }
+.prob-fill.fair { background: #f9a825; }
+.prob-fill.poor { background: #e53935; }
+.prob-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.defect-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 4px 0 10px; }
+.dchip {
+  font-size: 13px; background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 7px; padding: 4px 10px;
+}
+.dchip b { color: var(--accent-2); }
+
+.aux { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 10px; }
+.aux summary {
+  cursor: pointer; font-size: 12px; color: var(--muted); user-select: none;
+  list-style: revert;
+}
+.aux summary:hover { color: var(--text); }
+.aux .factors { margin-top: 10px; }
+
+/* ===== AI 종합 소견 ===== */
+.summary-card {
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px; padding: 14px 16px; margin: 4px 0 16px;
+}
+.summary-card.grade-a { border-left-color: #2e9e5b; }
+.summary-card.grade-b { border-left-color: #7cb342; }
+.summary-card.grade-c { border-left-color: #f9a825; }
+.summary-card.grade-d { border-left-color: #fb8c00; }
+.summary-card.grade-e { border-left-color: #e53935; }
+.sc-title { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.sc-lines { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.sc-lines li { font-size: 13.5px; line-height: 1.5; }
+.sc-caveat { margin: 10px 0 0; font-size: 11.5px; color: var(--muted); }

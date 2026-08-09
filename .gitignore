@@ -25,3 +25,6 @@ data-tools/aihubshell
 # OS
 Thumbs.db
 .DS_Store
+
+# 데모용 샘플 이미지 (AI-Hub 데이터 — 재배포 지양)
+demo_samples/
