@@ -1001,19 +1001,10 @@ h4 .src-tag {
   .ci-bar-fill { transition: none; }
 }
 
-/* 등급별 판정 플래그 강조 (위험할수록 시선 집중) */
 .pro-flag {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-.pro-flag::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-  flex: none;
 }
 
 /* ---- 페이지 제목 ---- */
@@ -1158,49 +1149,9 @@ h4 .src-tag {
 }
 .es-action:hover { background: var(--accent-dark); }
 
-/* ---- 등급별 시각 강도 (위험할수록 강하게) ---- */
-.card.tone { position: relative; overflow: hidden; }
-.card.tone::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-}
-.card.tone-a::before { background: #14924d; }
-.card.tone-b::before { background: #5a9e2f; }
-.card.tone-c::before { background: #f5a623; }
-.card.tone-d::before { background: #e2600c; height: 6px; }
-.card.tone-e::before { background: var(--red); height: 6px; }
-
-/* 위험 등급은 카드 자체에 옅은 경고 톤 + 강조 그림자 */
-.card.tone-d {
-  background: linear-gradient(180deg, #fff8f3 0%, var(--card) 130px);
-  box-shadow: 0 1px 3px rgba(226, 96, 12, 0.1), 0 8px 24px rgba(226, 96, 12, 0.12);
-}
-.card.tone-e {
-  background: linear-gradient(180deg, var(--red-soft) 0%, var(--card) 130px);
-  box-shadow: 0 1px 3px rgba(240, 68, 82, 0.12), 0 8px 24px rgba(240, 68, 82, 0.16);
-}
-.card.tone-d .result-head h3,
-.card.tone-e .result-head h3 { font-size: 18px; }
-.card.tone-d .pro-flag,
-.card.tone-e .pro-flag {
-  font-size: 15px;
-  padding: 15px 18px;
-}
-.card.tone-d .pro-flag::before,
-.card.tone-e .pro-flag::before {
-  animation: pulse 1.8s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.35); opacity: 0.55; }
-}
+/* 등급 강조는 카드 안의 배지와 안내 문구로만 표현한다.
+   카드 자체는 다른 화면과 동일한 흰 상자를 유지한다. */
 @media (prefers-reduced-motion: reduce) {
-  .card.tone-d .pro-flag::before,
-  .card.tone-e .pro-flag::before { animation: none; }
   .intro-inner { animation: none; }
 }
 
