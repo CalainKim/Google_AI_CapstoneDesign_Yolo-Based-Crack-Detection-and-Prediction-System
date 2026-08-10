@@ -34,3 +34,6 @@ docs/
 
 # 보고서용 이미지 자산
 report_assets/
+
+# 실행 시 생성되는 QR
+demo_qr.png
