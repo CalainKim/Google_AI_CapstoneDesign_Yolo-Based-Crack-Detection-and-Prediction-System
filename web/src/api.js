@@ -1,9 +1,7 @@
 // AI 서버 주소.
-// 지정이 없으면 지금 접속한 호스트의 8000 포트를 사용한다.
-// (휴대폰에서 http://<맥IP>:5173 으로 들어오면 API도 같은 IP를 자동으로 따라가므로
-//  네트워크가 바뀌어 IP가 달라져도 다시 설정할 필요가 없다.)
-export const API_BASE =
-  import.meta.env.VITE_API_BASE || `http://${window.location.hostname}:8000`;
+// 기본은 빈 문자열 = 같은 출처. 개발 서버가 /api 를 8000 포트로 중계하므로
+// 포트를 하나만 열면 되고, IP가 바뀌거나 외부 터널을 거쳐도 그대로 동작한다.
+export const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
 export async function getHealth() {
   const r = await fetch(`${API_BASE}/api/health`);
