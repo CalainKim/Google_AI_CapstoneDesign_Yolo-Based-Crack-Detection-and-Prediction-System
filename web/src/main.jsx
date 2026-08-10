@@ -10,6 +10,10 @@ import Settings from "./pages/Settings.jsx";
 import Report from "./pages/Report.jsx";
 import Onboarding from "./pages/Onboarding.jsx";
 import "./styles.css";
+import { getFontScale, applyFontScale } from "./lib/settings.js";
+
+// 저장된 글자 크기 적용
+applyFontScale(getFontScale());
 
 // 오프라인에서도 앱 화면이 뜨도록 서비스워커 등록
 if ("serviceWorker" in navigator) {

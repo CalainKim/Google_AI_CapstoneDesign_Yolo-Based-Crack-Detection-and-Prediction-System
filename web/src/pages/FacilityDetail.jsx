@@ -10,6 +10,7 @@ import {
 } from "../api";
 import GradeBadge from "../components/GradeBadge.jsx";
 import EmptyState from "../components/EmptyState.jsx";
+import FacilityQR from "../components/FacilityQR.jsx";
 
 const STATUS_CLS = { "접수": "s0", "진단 의뢰": "s1", "조치 완료": "s2" };
 const GRADE_RANK = { A: 1, B: 2, C: 3, D: 4, E: 5 };
@@ -22,6 +23,7 @@ export default function FacilityDetail() {
   const [assess, setAssess] = useState(null);
   const [compare, setCompare] = useState([]); // 비교 선택된 점검 id 2개
   const [editing, setEditing] = useState(null); // {name, type}
+  const [showQR, setShowQR] = useState(false);
   const navigate = useNavigate();
 
   async function onSaveFacility(e) {
@@ -125,6 +127,9 @@ export default function FacilityDetail() {
             </p>
             {facility && (
               <div className="facility-actions no-print">
+                <button className="action-btn primary-tone" onClick={() => setShowQR(true)}>
+                  QR 라벨
+                </button>
                 <button
                   className="action-btn"
                   onClick={() => setEditing({ name: facility.name, type: facility.type })}
@@ -294,6 +299,8 @@ export default function FacilityDetail() {
           />
         )}
       </div>
+
+      {showQR && <FacilityQR facility={facility} onClose={() => setShowQR(false)} />}
     </div>
   );
 }

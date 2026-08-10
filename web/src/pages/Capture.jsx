@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   getFacilities,
   uploadInspection,
@@ -30,6 +30,7 @@ export default function Capture() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [queuedMsg, setQueuedMsg] = useState("");
+  const [scanned, setScanned] = useState("");
 
   // 연속 촬영 세션
   const [session, setSession] = useState([]); // [{id, part, grade, score, defects}]
@@ -54,10 +55,20 @@ export default function Capture() {
     );
   }, [useGps]);
 
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
-    getFacilities().then(setFacilities).catch(() => {});
+    getFacilities().then((list) => {
+      setFacilities(list);
+      // QR 스캔으로 들어온 경우 해당 시설물을 자동 선택
+      const fid = searchParams.get("facility");
+      if (fid && list.some((f) => String(f.id) === fid)) {
+        setFacilityId(fid);
+        setScanned(list.find((f) => String(f.id) === fid)?.name || "");
+      }
+    }).catch(() => {});
     getParts().then(setParts).catch(() => {});
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if ((result || assessment) && resultRef.current) {
@@ -251,6 +262,12 @@ export default function Capture() {
             한 건물의 여러 부위를 이어서 촬영합니다. 촬영을 마치면 부재 중요도를 반영한
             건물 단위 종합 판정을 확인할 수 있습니다.
           </p>
+        )}
+
+        {scanned && (
+          <div className="scanned-note">
+            QR로 <b>{scanned}</b>을(를) 불러왔습니다. 바로 촬영하시면 됩니다.
+          </div>
         )}
 
         <label className="field">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   getStats,
@@ -9,6 +9,7 @@ import {
   RISK_LEVELS,
 } from "../api";
 import { SegmentBar, BarList, StageFlow } from "../components/charts.jsx";
+import usePullToRefresh from "../lib/usePullToRefresh.js";
 import GradeBadge from "../components/GradeBadge.jsx";
 import FacilityMap from "../components/FacilityMap.jsx";
 import EmptyState from "../components/EmptyState.jsx";
@@ -37,12 +38,22 @@ export default function Dashboard() {
   const [query, setQuery] = useState("");
   const [parts, setParts] = useState([]);
 
+  const load = useCallback(
+    () =>
+      Promise.all([
+        getStats().then(setStats).catch(() => {}),
+        getFacilities().then(setFacilities).catch(() => {}),
+        getInspections().then(setInspections).catch(() => {}),
+        getParts().then(setParts).catch(() => {}),
+      ]),
+    []
+  );
+
   useEffect(() => {
-    getStats().then(setStats).catch(() => {});
-    getFacilities().then(setFacilities).catch(() => {});
-    getInspections().then(setInspections).catch(() => {});
-    getParts().then(setParts).catch(() => {});
-  }, []);
+    load();
+  }, [load]);
+
+  const { pull, busy, threshold } = usePullToRefresh(load);
 
   const gradeDist = stats?.grade_distribution || {};
 
@@ -154,7 +165,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="dashboard">
+    <div className="dashboard" style={{ transform: pull ? `translateY(${pull}px)` : undefined }}>
+      {pull > 0 && (
+        <div className="ptr" style={{ top: -pull }}>
+          {busy ? "새로고침 중" : pull >= threshold ? "놓으면 새로고침" : "당겨서 새로고침"}
+        </div>
+      )}
       {unresolved > 0 && (
         <div className="alert-banner">
           미조치 정밀진단 대상이 <b>{unresolved}건</b> 있습니다. 우선 조치가 필요합니다.

@@ -22,6 +22,24 @@ export function setOnboarded(done = true) {
   else localStorage.removeItem(KEY_ONBOARD);
 }
 
+// 글자 크기 (현장에서 작은 글씨가 안 보이는 경우 대비)
+const KEY_FONT = "ansim.fontScale";
+export const FONT_SCALES = [
+  { key: "normal", label: "보통", value: 1 },
+  { key: "large", label: "크게", value: 1.12 },
+  { key: "xlarge", label: "더 크게", value: 1.25 },
+];
+
+export function getFontScale() {
+  return localStorage.getItem(KEY_FONT) || "normal";
+}
+
+export function applyFontScale(key) {
+  const s = FONT_SCALES.find((f) => f.key === key) || FONT_SCALES[0];
+  document.documentElement.style.setProperty("--font-scale", s.value);
+  localStorage.setItem(KEY_FONT, s.key);
+}
+
 // 최근 점검한 시설물 (빠른 선택용)
 const KEY_RECENT = "ansim.recentFacilities";
 

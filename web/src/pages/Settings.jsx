@@ -7,6 +7,9 @@ import {
   setCostPerDiagnosis,
   DEFAULT_COST,
   setOnboarded,
+  FONT_SCALES,
+  getFontScale,
+  applyFontScale,
 } from "../lib/settings.js";
 
 export default function Settings() {
@@ -16,6 +19,7 @@ export default function Settings() {
   const [facilities, setFacilities] = useState([]);
   const [cost, setCost] = useState(getCostPerDiagnosis());
   const [saved, setSaved] = useState(false);
+  const [fontScale, setFontScale] = useState(getFontScale());
 
   useEffect(() => {
     getStats().then(setStats).catch(() => {});
@@ -66,6 +70,26 @@ export default function Settings() {
           </button>
           {saved && <span className="share-msg">저장했습니다</span>}
         </form>
+      </div>
+
+      <div className="card">
+        <h3>글자 크기</h3>
+        <p className="muted">현장에서 화면이 잘 보이지 않을 때 조절하세요.</p>
+        <div className="font-picker">
+          {FONT_SCALES.map((f) => (
+            <button
+              key={f.key}
+              className={`font-chip${fontScale === f.key ? " on" : ""}`}
+              onClick={() => {
+                applyFontScale(f.key);
+                setFontScale(f.key);
+              }}
+              style={{ fontSize: `${13 * f.value}px` }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="card">
