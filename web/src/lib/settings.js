@@ -22,6 +22,35 @@ export function setOnboarded(done = true) {
   else localStorage.removeItem(KEY_ONBOARD);
 }
 
+// 최근 점검한 시설물 (빠른 선택용)
+const KEY_RECENT = "ansim.recentFacilities";
+
+export function getRecentFacilities() {
+  try {
+    return JSON.parse(localStorage.getItem(KEY_RECENT) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function pushRecentFacility(id) {
+  if (!id) return;
+  const list = [String(id), ...getRecentFacilities().filter((x) => x !== String(id))];
+  localStorage.setItem(KEY_RECENT, JSON.stringify(list.slice(0, 4)));
+}
+
+// 두 좌표 사이 거리(m) — 가까운 시설물 추천용
+export function distanceM(a, b) {
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(s)));
+}
+
 // 만원 단위 → 읽기 쉬운 금액
 export function formatWon(man) {
   if (!man) return "0원";

@@ -13,6 +13,7 @@ import SummaryCard from "../components/SummaryCard.jsx";
 import Lightbox from "../components/Lightbox.jsx";
 import { DEFECT_KO, shareInspection } from "../lib/inspection.js";
 import { enqueue } from "../lib/offlineQueue.js";
+import { getRecentFacilities, pushRecentFacility, distanceM } from "../lib/settings.js";
 
 export default function Capture() {
   const [facilities, setFacilities] = useState([]);
@@ -22,6 +23,8 @@ export default function Capture() {
 
   const [mode, setMode] = useState("single"); // single | series
   const [file, setFile] = useState(null);
+  const [queue, setQueue] = useState([]); // 일괄 촬영 대기 사진
+  const [batchDone, setBatchDone] = useState(0);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -73,13 +76,16 @@ export default function Capture() {
   }
 
   function onPick(e) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    setFile(f);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const [first, ...rest] = files;
+    setFile(first);
+    setQueue(rest); // 여러 장을 고르면 나머지는 순서대로 이어서 분석
+    setBatchDone(0);
     setResult(null);
     setError(null);
     setQueuedMsg("");
-    setPreview(URL.createObjectURL(f));
+    setPreview(URL.createObjectURL(first));
   }
 
   async function onAnalyze() {
@@ -109,6 +115,29 @@ export default function Capture() {
         lat: coords?.lat,
         lng: coords?.lng,
       });
+      pushRecentFacility(facilityId);
+
+      // 여러 장을 골랐으면 다음 사진을 이어서 분석
+      if (queue.length) {
+        const [next, ...rest] = queue;
+        setSession((prev) => [
+          ...prev,
+          {
+            id: res.id,
+            part: res.part,
+            grade: res.risk.risk_grade,
+            score: res.risk.risk_score,
+            defects: res.detections.length,
+          },
+        ]);
+        setBatchDone((n) => n + 1);
+        setQueue(rest);
+        setFile(next);
+        setPreview(URL.createObjectURL(next));
+        setResult(null);
+        return;
+      }
+
       if (mode === "series") {
         // 결과를 세션에 쌓고 바로 다음 촬영 준비
         setSession((prev) => [
@@ -171,7 +200,22 @@ export default function Capture() {
     }
   }
 
-  const seriesReady = mode === "series" && facilityId;
+  // 현재 위치 기준 500m 이내 가까운 시설물 (현장에서 목록을 뒤지지 않도록)
+  const nearby = coords
+    ? facilities
+        .filter((f) => f.lat != null && f.lng != null)
+        .map((f) => ({ ...f, dist: distanceM(coords, { lat: f.lat, lng: f.lng }) }))
+        .filter((f) => f.dist <= 500)
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 3)
+    : [];
+  const nearbyIds = new Set(nearby.map((f) => String(f.id)));
+  const recent = getRecentFacilities()
+    .filter((id) => !nearbyIds.has(id))
+    .map((id) => facilities.find((f) => String(f.id) === id))
+    .filter(Boolean)
+    .slice(0, 3);
+
   const shotParts = new Set(session.map((s) => s.part));
   const structuralParts = parts.filter((p) => p.structural);
   const currentPart = parts.find((p) => p.name === part);
@@ -220,6 +264,49 @@ export default function Capture() {
             ))}
           </select>
         </label>
+
+        {/* 현재 위치에서 가까운 시설물 · 최근 점검한 시설물 빠른 선택 */}
+        {(nearby.length > 0 || recent.length > 0) && (
+          <div className="quick-pick no-print">
+            {nearby.length > 0 && (
+              <div className="qp-group">
+                <span className="qp-title">가까운 시설물</span>
+                <div className="qp-chips">
+                  {nearby.map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      className={`qp-chip${String(f.id) === facilityId ? " on" : ""}`}
+                      onClick={() => setFacilityId(String(f.id))}
+                    >
+                      {f.name}
+                      <em>
+                        {f.dist < 1000 ? `${f.dist}m` : `${(f.dist / 1000).toFixed(1)}km`}
+                      </em>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {recent.length > 0 && (
+              <div className="qp-group">
+                <span className="qp-title">최근 점검</span>
+                <div className="qp-chips">
+                  {recent.map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      className={`qp-chip${String(f.id) === facilityId ? " on" : ""}`}
+                      onClick={() => setFacilityId(String(f.id))}
+                    >
+                      {f.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="field">
           <span>촬영 부위</span>
@@ -329,11 +416,32 @@ export default function Capture() {
           </ul>
         </div>
 
-        <label className="capture-btn">
-          {/* capture=environment → 휴대폰에서 후면 카메라 바로 실행 */}
-          <input type="file" accept="image/*" capture="environment" onChange={onPick} hidden />
-          {preview ? "다시 촬영 / 선택" : "사진 촬영 또는 선택"}
-        </label>
+        <div className="capture-actions">
+          <label className="capture-btn primary-fill">
+            {/* capture=environment → 휴대폰에서 후면 카메라 바로 실행 */}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={onPick}
+              hidden
+            />
+            {preview ? "다시 촬영" : "카메라로 촬영"}
+          </label>
+          <label className="capture-btn">
+            <input type="file" accept="image/*" multiple onChange={onPick} hidden />
+            사진 선택
+          </label>
+        </div>
+        <p className="pick-hint muted">
+          사진 선택은 여러 장을 한 번에 고를 수 있고, 순서대로 분석합니다.
+        </p>
+
+        {queue.length > 0 && (
+          <div className="batch-bar">
+            일괄 분석 {batchDone + 1} / {batchDone + 1 + queue.length}장 진행 중
+          </div>
+        )}
 
         {preview && (
           <div className="preview">

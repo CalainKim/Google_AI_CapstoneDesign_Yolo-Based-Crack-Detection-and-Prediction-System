@@ -1818,3 +1818,69 @@ h4 .src-tag {
 .dashboard > .card:last-child {
   margin-bottom: 0;
 }
+
+/* ---- 빠른 선택 (가까운/최근 시설물) ---- */
+.quick-pick { display: flex; flex-direction: column; gap: 12px; margin: -4px 0 16px; }
+.qp-group { display: flex; flex-direction: column; gap: 7px; }
+.qp-title { font-size: 12px; font-weight: 700; color: var(--muted-2); }
+.qp-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.qp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.qp-chip:hover { border-color: var(--accent); }
+.qp-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.qp-chip em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-2);
+  font-variant-numeric: tabular-nums;
+}
+.qp-chip.on em { color: rgba(255, 255, 255, 0.85); }
+
+.pick-hint { margin: -8px 0 14px; font-size: 12px; }
+.batch-bar {
+  background: var(--blue-soft);
+  color: var(--accent-dark);
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 지도 팝업 */
+.map-pop { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.map-pop b { font-size: 14px; }
+.map-pop span { color: #6b7684; font-size: 12px; }
+.map-pop button {
+  margin-top: 6px;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #3182f6;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 촬영 / 사진 선택 버튼 나란히 */
+.capture-actions { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+.capture-actions .capture-btn { margin-bottom: 0; }
+.capture-btn.primary-fill { background: var(--accent); color: #fff; }
+.capture-btn.primary-fill:hover { background: var(--accent-dark); }
