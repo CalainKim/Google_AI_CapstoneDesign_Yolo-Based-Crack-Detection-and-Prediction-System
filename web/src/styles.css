@@ -2024,3 +2024,74 @@ body { font-size: calc(15px * var(--font-scale)); }
     order: 3;
   }
 }
+
+/* ---- 등급 배지: 항상 한 줄 ---- */
+.grade-badge {
+  white-space: nowrap;
+  flex: none;
+}
+
+/* ---- 모바일에서 점검 내역 표를 목록 형태로 ---- */
+@media (max-width: 900px) {
+  .table thead {
+    display: none;
+  }
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+  }
+  .table tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "grade name name"
+      "grade status date";
+    column-gap: 10px;
+    row-gap: 4px;
+    align-items: center;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .table tr:last-child {
+    border-bottom: none;
+  }
+  .table td {
+    border: none;
+    padding: 0;
+    min-width: 0;
+  }
+  /* 컬럼 순서: 1=번호 2=시설물 3=등급 4=상태 5=일시 */
+  .table td:nth-child(1) {
+    display: none; /* 번호는 모바일에서 불필요 */
+  }
+  .table td:nth-child(2) {
+    grid-area: name;
+    font-weight: 600;
+    font-size: 14px;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  .table td:nth-child(3) {
+    grid-area: grade;
+  }
+  .table td:nth-child(4) {
+    grid-area: status;
+    justify-self: start;
+  }
+  .table td:nth-child(5) {
+    grid-area: date;
+    justify-self: end;
+    font-size: 12px;
+  }
+  /* 빈 상태 행은 전체 폭 사용 */
+  .table td[colspan] {
+    display: block;
+    grid-column: 1 / -1;
+  }
+  .table tr:has(td[colspan]) {
+    display: block;
+    padding: 0;
+  }
+}
