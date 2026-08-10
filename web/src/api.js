@@ -1,6 +1,9 @@
-// AI 서버 주소. 휴대폰에서 접속할 때는 PC의 실제 IP로 바꾸세요. (예: http://192.168.0.10:8000)
+// AI 서버 주소.
+// 지정이 없으면 지금 접속한 호스트의 8000 포트를 사용한다.
+// (휴대폰에서 http://<맥IP>:5173 으로 들어오면 API도 같은 IP를 자동으로 따라가므로
+//  네트워크가 바뀌어 IP가 달라져도 다시 설정할 필요가 없다.)
 export const API_BASE =
-  import.meta.env.VITE_API_BASE || "http://localhost:8000";
+  import.meta.env.VITE_API_BASE || `http://${window.location.hostname}:8000`;
 
 export async function getHealth() {
   const r = await fetch(`${API_BASE}/api/health`);

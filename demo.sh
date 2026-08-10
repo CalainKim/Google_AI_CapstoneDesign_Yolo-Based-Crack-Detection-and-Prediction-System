@@ -48,9 +48,10 @@ if [[ "${1:-}" == "--reseed" ]]; then
   echo "   stats: $(curl -s http://127.0.0.1:8000/api/stats | head -c 160)"
 fi
 
-echo "== 웹 시작 (API → http://$IP:8000) =="
+# API 주소는 프런트가 접속 호스트를 보고 자동으로 정한다(IP가 바뀌어도 무관).
+echo "== 웹 시작 =="
 cd "$ROOT/web"
-VITE_API_BASE="http://$IP:8000" nohup npm run dev -- --host > /tmp/demo_web.log 2>&1 &
+nohup npm run dev -- --host > /tmp/demo_web.log 2>&1 &
 until curl -s "http://localhost:5173" >/dev/null 2>&1; do sleep 1; done
 
 echo ""
