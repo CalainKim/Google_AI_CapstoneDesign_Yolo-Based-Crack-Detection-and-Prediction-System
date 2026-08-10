@@ -1982,3 +1982,14 @@ body { font-size: calc(15px * var(--font-scale)); }
 .table td .empty-state { width: 100%; }
 .table td .es-desc { max-width: none; }
 .es-action { white-space: nowrap; }
+
+/* 표 안에서 .table a 규칙이 빈 상태 버튼 색을 덮어써 파란 배경에 파란 글자가
+   되던 문제 수정 (선택자 특이도 충돌) */
+.table td a.es-action,
+.es-action {
+  color: #fff;
+}
+.table td a.es-action:hover,
+.es-action:hover {
+  color: #fff;
+}
