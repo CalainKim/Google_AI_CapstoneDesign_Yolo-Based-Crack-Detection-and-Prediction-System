@@ -567,7 +567,7 @@ export default function Capture() {
         >
           <div className="result-head">
             <h3>분석 결과</h3>
-            <GradeBadge grade={result.risk.risk_grade} score={result.risk.risk_score} />
+            <GradeBadge grade={result.risk.risk_grade} />
           </div>
           {result.mock_mode && (
             <p className="badge warn inline">

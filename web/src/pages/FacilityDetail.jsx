@@ -146,7 +146,7 @@ export default function FacilityDetail() {
         <div className="facility-kpis">
           <div className="kpi">
             <span className="kpi-label">최신 등급</span>
-            <GradeBadge grade={items[0]?.risk_grade} score={items[0]?.risk_score} />
+            <GradeBadge grade={items[0]?.risk_grade} />
           </div>
           <div className="kpi">
             <span className="kpi-label">누적 점검</span>
@@ -237,7 +237,7 @@ export default function FacilityDetail() {
                 <span className="cmp-label">{idx === 0 ? "이전" : "최근"}</span>
                 <img src={imageUrl(i.id)} alt={`점검 ${i.id}`} />
                 <div className="cmp-meta">
-                  <GradeBadge grade={i.risk_grade} score={i.risk_score} />
+                  <GradeBadge grade={i.risk_grade} />
                   <span className="muted">
                     {i.part || "미지정"} · 결함 {i.defect_count}개
                   </span>
@@ -273,7 +273,7 @@ export default function FacilityDetail() {
                       />
                     </label>
                     <Link to={`/inspection/${i.id}`} className="hist-link">
-                      <GradeBadge grade={i.risk_grade} score={i.risk_score} />
+                      <GradeBadge grade={i.risk_grade} />
                       <span className="hist-main">
                         {i.part || "미지정"} · 결함 {i.defect_count}개
                         <span className="muted">

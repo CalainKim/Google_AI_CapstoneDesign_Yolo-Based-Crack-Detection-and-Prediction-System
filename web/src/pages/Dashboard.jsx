@@ -277,7 +277,7 @@ export default function Dashboard() {
                 return (
                   <li key={i.id}>
                     <Link to={`/inspection/${i.id}`}>
-                      <GradeBadge grade={i.risk_grade} score={i.risk_score} />
+                      <GradeBadge grade={i.risk_grade} />
                       <span className="pl-name">
                         {i.facility_name || "미지정 시설"}
                       </span>
@@ -350,7 +350,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <table className="table">
+          <table className="table inspections">
             <thead>
               <tr>
                 <th>#</th>
@@ -374,7 +374,7 @@ export default function Dashboard() {
                     )}
                   </td>
                   <td>
-                    <GradeBadge grade={i.risk_grade} score={i.risk_score} />
+                    <GradeBadge grade={i.risk_grade} />
                   </td>
                   <td>
                     <span

@@ -2031,67 +2031,93 @@ body { font-size: calc(15px * var(--font-scale)); }
   flex: none;
 }
 
-/* ---- 모바일에서 점검 내역 표를 목록 형태로 ---- */
+/* ---- 등급 배지: 등급 문자만, 항상 한 줄 ---- */
+.grade-badge {
+  white-space: nowrap;
+  flex: none;
+  min-width: 30px;
+  justify-content: center;
+  padding: 5px 10px;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+.grade-badge.with-label em {
+  font-style: normal;
+  opacity: 0.9;
+  font-weight: 600;
+}
+.grade-badge.none {
+  min-width: 0;
+  font-size: 12px;
+}
+
+/* ---- 모바일: 점검 내역 표를 목록 형태로 ---- */
 @media (max-width: 900px) {
-  .table thead {
+  .table.inspections thead {
     display: none;
   }
-  .table,
-  .table tbody,
-  .table tr,
-  .table td {
+  .table.inspections,
+  .table.inspections tbody,
+  .table.inspections tr,
+  .table.inspections td {
     display: block;
   }
-  .table tr {
+  .table.inspections tr {
     display: grid;
     grid-template-columns: auto 1fr auto;
     grid-template-areas:
       "grade name name"
       "grade status date";
     column-gap: 10px;
-    row-gap: 4px;
+    row-gap: 3px;
     align-items: center;
     padding: 13px 0;
     border-bottom: 1px solid var(--line);
   }
-  .table tr:last-child {
+  .table.inspections tr:last-child {
     border-bottom: none;
   }
-  .table td {
+  .table.inspections td {
     border: none;
     padding: 0;
     min-width: 0;
   }
-  /* 컬럼 순서: 1=번호 2=시설물 3=등급 4=상태 5=일시 */
-  .table td:nth-child(1) {
-    display: none; /* 번호는 모바일에서 불필요 */
+  /* 열 순서: 1=번호 2=시설물 3=등급 4=상태 5=일시 */
+  .table.inspections td:nth-child(1) {
+    display: none;
   }
-  .table td:nth-child(2) {
+  .table.inspections td:nth-child(2) {
     grid-area: name;
     font-weight: 600;
     font-size: 14px;
     word-break: keep-all;
     overflow-wrap: anywhere;
   }
-  .table td:nth-child(3) {
+  .table.inspections td:nth-child(3) {
     grid-area: grade;
   }
-  .table td:nth-child(4) {
+  .table.inspections td:nth-child(4) {
     grid-area: status;
     justify-self: start;
   }
-  .table td:nth-child(5) {
+  .table.inspections td:nth-child(5) {
     grid-area: date;
     justify-self: end;
     font-size: 12px;
   }
-  /* 빈 상태 행은 전체 폭 사용 */
-  .table td[colspan] {
-    display: block;
-    grid-column: 1 / -1;
-  }
-  .table tr:has(td[colspan]) {
+  /* 빈 상태 행은 전체 폭 */
+  .table.inspections tr:has(td[colspan]) {
     display: block;
     padding: 0;
+  }
+  .table.inspections td[colspan] {
+    display: block;
+  }
+
+  /* 결함 표(4열)는 가로 스크롤로 처리 */
+  .card > .table:not(.inspections) {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 }
