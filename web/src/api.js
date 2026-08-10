@@ -19,10 +19,14 @@ export async function getStats() {
 }
 
 export async function getInspections(grade, facilityId) {
-  const url = new URL(`${API_BASE}/api/inspections`);
-  if (grade) url.searchParams.set("grade", grade);
-  if (facilityId) url.searchParams.set("facility_id", facilityId);
-  const r = await fetch(url);
+  // API_BASE가 빈 문자열(같은 출처)일 수 있으므로 new URL() 대신 문자열로 조합한다.
+  // (new URL은 절대 주소가 아니면 예외를 던져 목록이 통째로 비어 버린다)
+  const q = new URLSearchParams();
+  if (grade) q.set("grade", grade);
+  if (facilityId) q.set("facility_id", facilityId);
+  const qs = q.toString();
+  const r = await fetch(`${API_BASE}/api/inspections${qs ? `?${qs}` : ""}`);
+  if (!r.ok) throw new Error("점검 목록을 불러오지 못했습니다");
   return r.json();
 }
 
